@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Housing Offline Manager</title>
+  <title>ระบบบริหารจัดการบ้านพักครู (ออฟไลน์)</title>
   <style>
     :root {
       --bg: #0f1419;
@@ -22,7 +22,7 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: "Sarabun", "Segoe UI", Tahoma, sans-serif;
       background: var(--bg);
       color: var(--text);
     }
@@ -310,21 +310,21 @@
   <header>
     <div class="header-row">
       <div class="title-wrap">
-        <h1>Teacher Housing Offline Manager</h1>
-        <p>Single-file, offline-first. Mock data stored in memory and localStorage.</p>
+        <h1>ระบบบริหารจัดการบ้านพักครู (ออฟไลน์)</h1>
+        <p>ไฟล์เดียว ใช้งานออฟไลน์ ข้อมูลจำลองเก็บในหน่วยความจำและ localStorage</p>
       </div>
       <div class="controls">
         <div>
-          <label for="roleSelect">Role</label><br>
+          <label for="roleSelect">บทบาท</label><br>
           <select id="roleSelect"></select>
         </div>
         <div>
-          <label for="userSelect">User</label><br>
+          <label for="userSelect">ผู้ใช้</label><br>
           <select id="userSelect"></select>
         </div>
         <div>
           <label>&nbsp;</label><br>
-          <button id="resetData" class="warning">Reset to Mock</button>
+          <button id="resetData" class="warning">รีเซ็ตข้อมูลจำลอง</button>
         </div>
       </div>
     </div>
@@ -332,7 +332,7 @@
 
   <div class="layout">
     <nav>
-      <h2>Menu</h2>
+      <h2>เมนู</h2>
       <ul id="menuList"></ul>
     </nav>
     <main id="content"></main>
@@ -382,7 +382,7 @@
 
       function formatMoney(value) {
         var num = Number(value || 0);
-        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return num.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
 
       function formatDate(value) {
@@ -411,12 +411,12 @@
             paymentWorkingDays: 3
           },
           roles: [
-            { id: 'resident', name: 'Resident' },
-            { id: 'field', name: 'Field Committee' },
-            { id: 'accounting', name: 'Accounting' },
-            { id: 'admin', name: 'Admin' },
-            { id: 'executive', name: 'Executive' },
-            { id: 'applicant', name: 'Applicant' }
+            { id: 'resident', name: 'ผู้พักอาศัย' },
+            { id: 'field', name: 'คณะกรรมการภาคสนาม' },
+            { id: 'accounting', name: 'งานบัญชี' },
+            { id: 'admin', name: 'แอดมิน' },
+            { id: 'executive', name: 'ผู้บริหาร' },
+            { id: 'applicant', name: 'ผู้ขอเข้าพัก' }
           ],
           units: [
             { id: 'unit-1', label: 'A-101', type: 'flat', status: 'occupied', residentId: 'res-1' },
@@ -427,25 +427,25 @@
           residents: [
             {
               id: 'res-1',
-              name: 'Anan Boon',
+              name: 'อนันต์ บุญ',
               email: 'anan@example.com',
               phone: '0801112222',
               unitId: 'unit-1',
               status: 'active',
-              household: [{ name: 'Mali Boon', relation: 'Spouse' }]
+              household: [{ name: 'มะลิ บุญ', relation: 'คู่สมรส' }]
             },
             {
               id: 'res-2',
-              name: 'Nida K.',
+              name: 'นิดา ก.',
               email: 'nida@example.com',
               phone: '0802223333',
               unitId: 'unit-2',
               status: 'active',
-              household: [{ name: 'Kawin K.', relation: 'Child' }]
+              household: [{ name: 'กวิน ก.', relation: 'บุตร' }]
             },
             {
               id: 'res-3',
-              name: 'Somchai Lek',
+              name: 'สมชาย เล็ก',
               email: 'somchai@example.com',
               phone: '0805556666',
               unitId: 'unit-4',
@@ -454,14 +454,14 @@
             }
           ],
           users: [
-            { id: 'user-res-1', name: 'Anan Boon', role: 'resident', residentId: 'res-1', status: 'active' },
-            { id: 'user-res-2', name: 'Nida K.', role: 'resident', residentId: 'res-2', status: 'active' },
-            { id: 'user-res-3', name: 'Somchai Lek', role: 'resident', residentId: 'res-3', status: 'active' },
-            { id: 'user-field-1', name: 'Field Staff One', role: 'field', status: 'active' },
-            { id: 'user-acc-1', name: 'Accounting One', role: 'accounting', status: 'active' },
-            { id: 'user-admin-1', name: 'Admin One', role: 'admin', status: 'active' },
-            { id: 'user-exec-1', name: 'Executive One', role: 'executive', status: 'active' },
-            { id: 'user-app-1', name: 'Applicant Guest', role: 'applicant', status: 'active' }
+            { id: 'user-res-1', name: 'อนันต์ บุญ', role: 'resident', residentId: 'res-1', status: 'active' },
+            { id: 'user-res-2', name: 'นิดา ก.', role: 'resident', residentId: 'res-2', status: 'active' },
+            { id: 'user-res-3', name: 'สมชาย เล็ก', role: 'resident', residentId: 'res-3', status: 'active' },
+            { id: 'user-field-1', name: 'เจ้าหน้าที่ภาคสนาม 1', role: 'field', status: 'active' },
+            { id: 'user-acc-1', name: 'เจ้าหน้าที่บัญชี 1', role: 'accounting', status: 'active' },
+            { id: 'user-admin-1', name: 'แอดมิน 1', role: 'admin', status: 'active' },
+            { id: 'user-exec-1', name: 'ผู้บริหาร 1', role: 'executive', status: 'active' },
+            { id: 'user-app-1', name: 'ผู้ขอเข้าพัก (ทดลอง)', role: 'applicant', status: 'active' }
           ],
           payments: [
             {
@@ -514,7 +514,7 @@
               commonFee: 120,
               totalDue: 610,
               transactions: [
-                { id: 'tx-1', amount: 610, payer: 'Anan Boon', submittedAt: billedPrev, slipRef: 'SLIP-001', note: '' }
+                { id: 'tx-1', amount: 610, payer: 'อนันต์ บุญ', submittedAt: billedPrev, slipRef: 'SLIP-001', note: '' }
               ],
               verified: true
             },
@@ -529,7 +529,7 @@
               commonFee: 120,
               totalDue: 620,
               transactions: [
-                { id: 'tx-2', amount: 500, payer: 'Nida K.', submittedAt: billedPrev, slipRef: 'SLIP-014', note: 'Partial' }
+                { id: 'tx-2', amount: 500, payer: 'นิดา ก.', submittedAt: billedPrev, slipRef: 'SLIP-014', note: 'ชำระบางส่วน' }
               ],
               verified: false
             },
@@ -544,7 +544,7 @@
               commonFee: 120,
               totalDue: 650,
               transactions: [
-                { id: 'tx-3', amount: 650, payer: 'Somchai Lek', submittedAt: prev2Period + '-03', slipRef: 'SLIP-112', note: '' }
+                { id: 'tx-3', amount: 650, payer: 'สมชาย เล็ก', submittedAt: prev2Period + '-03', slipRef: 'SLIP-112', note: '' }
               ],
               verified: true
             }
@@ -583,7 +583,7 @@
               unitId: 'unit-1',
               status: 'open',
               createdAt: prevPeriod + '-10',
-              detail: 'Water leak near sink',
+              detail: 'ท่อน้ำรั่วใต้อ่างล้างจาน',
               priority: 'high',
               assignedTo: 'user-field-1',
               trackingCode: 'REQ-1001'
@@ -591,20 +591,20 @@
             {
               id: 'req-2',
               type: 'application',
-              applicantName: 'Pailin Dee',
+              applicantName: 'ไพลิน ดี',
               email: 'pailin@example.com',
               phone: '0807778888',
               desiredUnitType: 'flat',
               status: 'queued',
               queueOrder: 2,
               createdAt: prevPeriod + '-12',
-              note: 'Near school preferred',
+              note: 'ขอใกล้โรงเรียน',
               trackingCode: 'APP-2001'
             }
           ],
           ledgerEntries: [
-            { id: 'led-1', period: prevPeriod, type: 'income', category: 'Common Fee', amount: 360, note: '', date: prevPeriod + '-20', createdBy: 'user-acc-1' },
-            { id: 'led-2', period: prevPeriod, type: 'expense', category: 'Waste', amount: 90, note: '', date: prevPeriod + '-21', createdBy: 'user-acc-1' }
+            { id: 'led-1', period: prevPeriod, type: 'income', category: 'ค่าส่วนกลาง', amount: 360, note: '', date: prevPeriod + '-20', createdBy: 'user-acc-1' },
+            { id: 'led-2', period: prevPeriod, type: 'expense', category: 'ค่าขยะ', amount: 90, note: '', date: prevPeriod + '-21', createdBy: 'user-acc-1' }
           ],
           reconciliations: [],
           rounds: [
@@ -704,7 +704,7 @@
       function assertPermission(permission) {
         var role = app.state.currentRole;
         if (!hasPermission(role, permission)) {
-          throw new Error('Permission denied for ' + permission);
+          throw new Error('ไม่มีสิทธิ์สำหรับ ' + permission);
         }
       }
 
@@ -812,7 +812,7 @@
         var entry = {
           id: 'log-' + Date.now(),
           timestamp: new Date().toISOString(),
-          actor: user ? user.name : 'System',
+          actor: user ? user.name : 'ระบบ',
           role: app.state.currentRole,
           action: action,
           details: details || {}
@@ -837,42 +837,42 @@
 
       var menus = {
         resident: [
-          { id: 'res-dashboard', label: 'Dashboard' },
-          { id: 'res-payment', label: 'Submit Payment' },
-          { id: 'res-history', label: 'Payment History' },
-          { id: 'res-requests', label: 'Maintenance Requests' },
-          { id: 'res-profile', label: 'Profile' }
+          { id: 'res-dashboard', label: 'แดชบอร์ด' },
+          { id: 'res-payment', label: 'ส่งหลักฐานชำระเงิน' },
+          { id: 'res-history', label: 'ประวัติการชำระเงิน' },
+          { id: 'res-requests', label: 'คำขอซ่อมบำรุง' },
+          { id: 'res-profile', label: 'โปรไฟล์' }
         ],
         field: [
-          { id: 'field-water', label: 'Record Water Meter' },
-          { id: 'field-electric', label: 'Record Electricity' },
-          { id: 'field-status', label: 'Round Status' },
-          { id: 'field-requests', label: 'Work Orders' }
+          { id: 'field-water', label: 'บันทึกมิเตอร์น้ำ' },
+          { id: 'field-electric', label: 'บันทึกค่าไฟ' },
+          { id: 'field-status', label: 'สถานะรอบงาน' },
+          { id: 'field-requests', label: 'งานซ่อมบำรุง' }
         ],
         accounting: [
-          { id: 'acc-verify', label: 'Verify Payments' },
-          { id: 'acc-ledger', label: 'Ledger' },
-          { id: 'acc-reconcile', label: 'Bank Reconciliation' },
-          { id: 'acc-round', label: 'Close Round' }
+          { id: 'acc-verify', label: 'ตรวจสอบการชำระเงิน' },
+          { id: 'acc-ledger', label: 'บัญชีกองกลาง' },
+          { id: 'acc-reconcile', label: 'เทียบยอดธนาคาร' },
+          { id: 'acc-round', label: 'ปิดรอบการเงิน' }
         ],
         admin: [
-          { id: 'admin-users', label: 'Users and Roles' },
-          { id: 'admin-config', label: 'System Settings' },
-          { id: 'admin-units', label: 'Housing Units' },
-          { id: 'admin-applications', label: 'Applications and Queue' },
-          { id: 'admin-data', label: 'Import and Export' },
-          { id: 'admin-audit', label: 'Audit Log' }
+          { id: 'admin-users', label: 'ผู้ใช้และสิทธิ์' },
+          { id: 'admin-config', label: 'ตั้งค่าระบบ' },
+          { id: 'admin-units', label: 'หน่วยพัก/แฟลต' },
+          { id: 'admin-applications', label: 'คำร้องและคิว' },
+          { id: 'admin-data', label: 'นำเข้าและส่งออก' },
+          { id: 'admin-audit', label: 'บันทึกการทำรายการ' }
         ],
         executive: [
-          { id: 'exec-dashboard', label: 'Executive Dashboard' },
-          { id: 'exec-reports', label: 'Reports' },
-          { id: 'exec-residents', label: 'Resident Lookup' },
-          { id: 'exec-audit', label: 'Audit Viewer' }
+          { id: 'exec-dashboard', label: 'แดชบอร์ดผู้บริหาร' },
+          { id: 'exec-reports', label: 'รายงาน' },
+          { id: 'exec-residents', label: 'ค้นหาผู้พักอาศัย' },
+          { id: 'exec-audit', label: 'ตรวจสอบบันทึก' }
         ],
         applicant: [
-          { id: 'app-apply', label: 'Apply for Housing' },
-          { id: 'app-track', label: 'Track Application' },
-          { id: 'app-about', label: 'About Housing' }
+          { id: 'app-apply', label: 'ยื่นคำร้องขอเข้าพัก' },
+          { id: 'app-track', label: 'ติดตามคำร้อง' },
+          { id: 'app-about', label: 'เกี่ยวกับบ้านพัก' }
         ]
       };
 
@@ -907,13 +907,13 @@
         users.forEach(function (user) {
           var opt = document.createElement('option');
           opt.value = user.id;
-          opt.textContent = user.name + (user.status !== 'active' ? ' (inactive)' : '');
+          opt.textContent = user.name + (user.status !== 'active' ? ' (ระงับ)' : '');
           userSelect.appendChild(opt);
         });
         if (!users.length) {
           var opt = document.createElement('option');
           opt.value = '';
-          opt.textContent = 'No users for role';
+          opt.textContent = 'ไม่พบผู้ใช้สำหรับบทบาทนี้';
           userSelect.appendChild(opt);
         }
         if (!users.some(function (user) { return user.id === app.state.currentUserId; })) {
@@ -956,36 +956,36 @@
       }
 
       function statusTag(status) {
-        if (status === 'paid') return '<span class="tag success">PAID</span>';
-        if (status === 'pending') return '<span class="tag warning">PENDING</span>';
-        if (status === 'underpaid') return '<span class="tag warning">UNDERPAID</span>';
-        if (status === 'late') return '<span class="tag danger">LATE</span>';
-        return '<span class="tag info">UNPAID</span>';
+        if (status === 'paid') return '<span class="tag success">ชำระแล้ว</span>';
+        if (status === 'pending') return '<span class="tag warning">รอตรวจสอบ</span>';
+        if (status === 'underpaid') return '<span class="tag warning">ชำระไม่ครบ</span>';
+        if (status === 'late') return '<span class="tag danger">ค้างชำระ</span>';
+        return '<span class="tag info">ยังไม่ชำระ</span>';
       }
 
       function renderResidentDashboard() {
         var resident = getCurrentResident();
         if (!resident) {
-          setContent('<h2>Resident Dashboard</h2><p class="muted">No resident selected.</p>');
+          setContent('<h2>แดชบอร์ดผู้พักอาศัย</h2><p class="muted">ยังไม่ได้เลือกผู้พักอาศัย</p>');
           return;
         }
         var unit = getUnitById(resident.unitId);
         var currentPeriod = getCurrentPeriod();
         var payment = ensurePaymentForResident(resident.id, currentPeriod);
         refreshDerivedData();
-        var message = payment.status === 'late' ? '<div class="message warning">Payment is late. Deadline is 3 working days from billing date.</div>' : '';
+        var message = payment.status === 'late' ? '<div class="message warning">ค้างชำระ: กำหนดชำระภายใน 3 วันทำการนับจากวันแจ้งยอด</div>' : '';
         setContent(
-          '<h2>Resident Dashboard</h2>' +
+          '<h2>แดชบอร์ดผู้พักอาศัย</h2>' +
           message +
           '<div class="grid two">' +
-            '<div class="card"><h3>Resident</h3><p>' + resident.name + '</p><p class="muted">Unit: ' + (unit ? unit.label : '-') + '</p></div>' +
-            '<div class="card"><h3>Current Period</h3><p>' + currentPeriod + '</p><p class="muted">Due date: ' + payment.dueDate + '</p></div>' +
-            '<div class="card"><h3>Total Due</h3><p>' + formatMoney(payment.totalDue) + '</p><p class="muted">Status: ' + statusTag(payment.status) + '</p></div>' +
-            '<div class="card"><h3>Breakdown</h3><p>Water: ' + formatMoney(payment.waterAmount) + '</p><p>Electric: ' + formatMoney(payment.electricityAmount) + '</p><p>Common: ' + formatMoney(payment.commonFee) + '</p></div>' +
+            '<div class="card"><h3>ผู้พักอาศัย</h3><p>' + resident.name + '</p><p class="muted">หน่วยพัก: ' + (unit ? unit.label : '-') + '</p></div>' +
+            '<div class="card"><h3>รอบปัจจุบัน</h3><p>' + currentPeriod + '</p><p class="muted">กำหนดชำระ: ' + payment.dueDate + '</p></div>' +
+            '<div class="card"><h3>ยอดที่ต้องชำระ</h3><p>' + formatMoney(payment.totalDue) + '</p><p class="muted">สถานะ: ' + statusTag(payment.status) + '</p></div>' +
+            '<div class="card"><h3>รายละเอียด</h3><p>ค่าน้ำ: ' + formatMoney(payment.waterAmount) + '</p><p>ค่าไฟ: ' + formatMoney(payment.electricityAmount) + '</p><p>ค่าส่วนกลาง: ' + formatMoney(payment.commonFee) + '</p></div>' +
           '</div>' +
           '<div class="inline-actions">' +
-            '<button class="primary" id="goSubmit">Submit Payment</button>' +
-            '<button class="ghost" id="goRequest">New Maintenance Request</button>' +
+            '<button class="primary" id="goSubmit">ส่งหลักฐานชำระเงิน</button>' +
+            '<button class="ghost" id="goRequest">แจ้งซ่อมใหม่</button>' +
           '</div>'
         );
         document.getElementById('goSubmit').addEventListener('click', function () {
@@ -1005,14 +1005,14 @@
       function renderResidentPayment() {
         var resident = getCurrentResident();
         if (!resident) {
-          setContent('<h2>Submit Payment</h2><p class="muted">No resident selected.</p>');
+          setContent('<h2>ส่งหลักฐานชำระเงิน</h2><p class="muted">ยังไม่ได้เลือกผู้พักอาศัย</p>');
           return;
         }
         var period = getCurrentPeriod();
         var payment = ensurePaymentForResident(resident.id, period);
         refreshDerivedData();
         var alreadySubmitted = payment.transactions && payment.transactions.length > 0;
-        var warning = alreadySubmitted ? '<div class="message warning">Payment already submitted in this period. New submissions will add to total paid.</div>' : '';
+        var warning = alreadySubmitted ? '<div class="message warning">รอบนี้เคยส่งหลักฐานแล้ว การส่งใหม่จะถูกนับเป็นยอดเพิ่มเติม</div>' : '';
         var household = resident.household || [];
         var payerOptions = ['<option value="' + resident.name + '">' + resident.name + '</option>'];
         household.forEach(function (member) {
@@ -1020,26 +1020,26 @@
         });
 
         setContent(
-          '<h2>Submit Payment</h2>' +
+          '<h2>ส่งหลักฐานชำระเงิน</h2>' +
           warning +
           '<div class="card">' +
-            '<p><strong>Period:</strong> ' + period + ' | <strong>Due:</strong> ' + payment.dueDate + '</p>' +
-            '<p><strong>Total due:</strong> ' + formatMoney(payment.totalDue) + '</p>' +
+            '<p><strong>รอบ:</strong> ' + period + ' | <strong>กำหนดชำระ:</strong> ' + payment.dueDate + '</p>' +
+            '<p><strong>ยอดที่ต้องชำระ:</strong> ' + formatMoney(payment.totalDue) + '</p>' +
             '<div id="paymentMessage"></div>' +
             '<div class="form-row two">' +
-              '<div><label>Payer</label><br><select id="payerSelect">' + payerOptions.join('') + '</select></div>' +
-              '<div><label>Amount</label><br><input type="number" id="payAmount" min="0" step="0.01" value="' + payment.totalDue + '"></div>' +
+              '<div><label>ผู้ชำระ</label><br><select id="payerSelect">' + payerOptions.join('') + '</select></div>' +
+              '<div><label>จำนวนเงิน</label><br><input type="number" id="payAmount" min="0" step="0.01" value="' + payment.totalDue + '"></div>' +
             '</div>' +
             '<div class="form-row two">' +
-              '<div><label>Payment date</label><br><input type="date" id="payDate" value="' + toISODate(new Date()) + '"></div>' +
-              '<div><label>Slip reference (required)</label><br><input type="text" id="slipRef" placeholder="SLIP-XXXX"></div>' +
+              '<div><label>วันที่ชำระ</label><br><input type="date" id="payDate" value="' + toISODate(new Date()) + '"></div>' +
+              '<div><label>เลขอ้างอิงสลิป (จำเป็น)</label><br><input type="text" id="slipRef" placeholder="SLIP-XXXX"></div>' +
             '</div>' +
             '<div class="form-row">' +
-              '<div><label>Note</label><br><input type="text" id="payNote" placeholder="Optional note"></div>' +
+              '<div><label>หมายเหตุ</label><br><input type="text" id="payNote" placeholder="ระบุเพิ่มเติม (ถ้ามี)"></div>' +
             '</div>' +
             '<div class="inline-actions">' +
-              '<button class="primary" id="submitPaymentBtn">Submit</button>' +
-              '<button class="ghost" id="viewHistoryBtn">View History</button>' +
+              '<button class="primary" id="submitPaymentBtn">ส่งหลักฐาน</button>' +
+              '<button class="ghost" id="viewHistoryBtn">ดูประวัติ</button>' +
             '</div>' +
           '</div>'
         );
@@ -1059,11 +1059,11 @@
           var payDate = document.getElementById('payDate').value;
           var note = document.getElementById('payNote').value.trim();
           if (!slipRef) {
-            message.innerHTML = '<div class="message error">Slip reference is required.</div>';
+            message.innerHTML = '<div class="message error">กรุณาระบุเลขอ้างอิงสลิป</div>';
             return;
           }
           if (amount <= 0) {
-            message.innerHTML = '<div class="message error">Amount must be greater than 0.</div>';
+            message.innerHTML = '<div class="message error">จำนวนเงินต้องมากกว่า 0</div>';
             return;
           }
           payment.transactions.push({
@@ -1076,8 +1076,8 @@
           });
           logAction('payment.submit', { paymentId: payment.id, amount: amount });
           saveAll();
-          message.innerHTML = '<div class="message success">Payment submitted. Status is now pending verification.</div>';
-          showToast('Payment submitted.');
+          message.innerHTML = '<div class="message success">ส่งหลักฐานแล้ว สถานะเป็นรอตรวจสอบ</div>';
+          showToast('บันทึกการชำระเงินแล้ว');
         });
 
         document.getElementById('viewHistoryBtn').addEventListener('click', function () {
@@ -1091,7 +1091,7 @@
       function renderResidentHistory() {
         var resident = getCurrentResident();
         if (!resident) {
-          setContent('<h2>Payment History</h2><p class="muted">No resident selected.</p>');
+          setContent('<h2>ประวัติการชำระเงิน</h2><p class="muted">ยังไม่ได้เลือกผู้พักอาศัย</p>');
           return;
         }
         var payments = app.data.payments.filter(function (payment) { return payment.residentId === resident.id; });
@@ -1103,24 +1103,24 @@
             '<td>' + formatMoney(payment.amountPaid) + '</td>' +
             '<td>' + formatDate(payment.dueDate) + '</td>' +
             '<td>' + statusTag(payment.status) + '</td>' +
-            '<td><button class="ghost" data-detail="' + payment.id + '">Details</button></td>' +
+            '<td><button class="ghost" data-detail="' + payment.id + '">รายละเอียด</button></td>' +
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Payment History</h2>' +
+          '<h2>ประวัติการชำระเงิน</h2>' +
           '<div class="form-row two">' +
-            '<div><label>Status filter</label><br><select id="historyStatus">' +
-              '<option value="all">All</option>' +
-              '<option value="paid">Paid</option>' +
-              '<option value="pending">Pending</option>' +
-              '<option value="underpaid">Underpaid</option>' +
-              '<option value="late">Late</option>' +
-              '<option value="unpaid">Unpaid</option>' +
+            '<div><label>กรองตามสถานะ</label><br><select id="historyStatus">' +
+              '<option value="all">ทั้งหมด</option>' +
+              '<option value="paid">ชำระแล้ว</option>' +
+              '<option value="pending">รอตรวจสอบ</option>' +
+              '<option value="underpaid">ชำระไม่ครบ</option>' +
+              '<option value="late">ค้างชำระ</option>' +
+              '<option value="unpaid">ยังไม่ชำระ</option>' +
             '</select></div>' +
-            '<div><label>Period contains</label><br><input type="text" id="historyPeriod" placeholder="YYYY-MM"></div>' +
+            '<div><label>ค้นหารอบ</label><br><input type="text" id="historyPeriod" placeholder="YYYY-MM"></div>' +
           '</div>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Period</th><th>Total Due</th><th>Paid</th><th>Due Date</th><th>Status</th><th></th></tr></thead>' +
+            '<thead><tr><th>รอบ</th><th>ยอดที่ต้องชำระ</th><th>ยอดชำระ</th><th>กำหนดชำระ</th><th>สถานะ</th><th></th></tr></thead>' +
             '<tbody id="historyBody">' + rows + '</tbody>' +
           '</table></div>' +
           '<div id="historyDetails" class="card" style="margin-top:1rem; display:none;"></div>'
@@ -1141,7 +1141,7 @@
               '<td>' + formatMoney(payment.amountPaid) + '</td>' +
               '<td>' + formatDate(payment.dueDate) + '</td>' +
               '<td>' + statusTag(payment.status) + '</td>' +
-              '<td><button class="ghost" data-detail="' + payment.id + '">Details</button></td>' +
+              '<td><button class="ghost" data-detail="' + payment.id + '">รายละเอียด</button></td>' +
             '</tr>';
           }).join('');
           document.getElementById('historyBody').innerHTML = body;
@@ -1160,46 +1160,48 @@
           }).join('');
           var container = document.getElementById('historyDetails');
           container.style.display = 'block';
-          container.innerHTML = '<h3>Payment Details</h3>' +
-            '<p><strong>Period:</strong> ' + payment.period + '</p>' +
-            '<ul>' + (details || '<li>No transactions</li>') + '</ul>';
+          container.innerHTML = '<h3>รายละเอียดการชำระ</h3>' +
+            '<p><strong>รอบ:</strong> ' + payment.period + '</p>' +
+            '<ul>' + (details || '<li>ไม่มีรายการชำระ</li>') + '</ul>';
         });
       }
 
       function renderResidentRequests() {
         var resident = getCurrentResident();
         if (!resident) {
-          setContent('<h2>Maintenance Requests</h2><p class="muted">No resident selected.</p>');
+          setContent('<h2>คำขอซ่อมบำรุง</h2><p class="muted">ยังไม่ได้เลือกผู้พักอาศัย</p>');
           return;
         }
         var requests = app.data.requests.filter(function (req) { return req.type === 'maintenance' && req.residentId === resident.id; });
         var rows = requests.map(function (req) {
+          var priorityLabel = req.priority === 'high' ? 'สูง' : (req.priority === 'medium' ? 'กลาง' : 'ต่ำ');
+          var statusLabel = req.status === 'open' ? 'เปิดงาน' : (req.status === 'in_progress' ? 'กำลังดำเนินการ' : (req.status === 'done' ? 'เสร็จแล้ว' : 'ยกเลิก'));
           return '<tr>' +
             '<td>' + req.trackingCode + '</td>' +
             '<td>' + req.detail + '</td>' +
-            '<td>' + req.priority + '</td>' +
-            '<td>' + req.status + '</td>' +
-            '<td><button class="ghost" data-cancel="' + req.id + '">Cancel</button></td>' +
+            '<td>' + priorityLabel + '</td>' +
+            '<td>' + statusLabel + '</td>' +
+            '<td><button class="ghost" data-cancel="' + req.id + '">ยกเลิก</button></td>' +
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Maintenance Requests</h2>' +
+          '<h2>คำขอซ่อมบำรุง</h2>' +
           '<div id="requestMessage"></div>' +
           '<div class="card">' +
             '<div class="form-row two">' +
-              '<div><label>Priority</label><br><select id="reqPriority">' +
-                '<option value="low">Low</option>' +
-                '<option value="medium">Medium</option>' +
-                '<option value="high">High</option>' +
+              '<div><label>ระดับความเร่งด่วน</label><br><select id="reqPriority">' +
+                '<option value="low">ต่ำ</option>' +
+                '<option value="medium">กลาง</option>' +
+                '<option value="high">สูง</option>' +
               '</select></div>' +
-              '<div><label>Request detail</label><br><input type="text" id="reqDetail" placeholder="Describe the issue"></div>' +
+              '<div><label>รายละเอียดปัญหา</label><br><input type="text" id="reqDetail" placeholder="ระบุปัญหาที่พบ"></div>' +
             '</div>' +
-            '<button class="primary" id="reqSubmit">Create Request</button>' +
+            '<button class="primary" id="reqSubmit">สร้างคำขอ</button>' +
           '</div>' +
           '<div class="divider"></div>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Tracking</th><th>Detail</th><th>Priority</th><th>Status</th><th></th></tr></thead>' +
-            '<tbody>' + (rows || '<tr><td colspan="5" class="muted">No requests yet.</td></tr>') + '</tbody>' +
+            '<thead><tr><th>รหัสติดตาม</th><th>รายละเอียด</th><th>ความเร่งด่วน</th><th>สถานะ</th><th></th></tr></thead>' +
+            '<tbody>' + (rows || '<tr><td colspan="5" class="muted">ยังไม่มีคำขอ</td></tr>') + '</tbody>' +
           '</table></div>'
         );
 
@@ -1215,7 +1217,7 @@
           var detail = document.getElementById('reqDetail').value.trim();
           var priority = document.getElementById('reqPriority').value;
           if (!detail) {
-            message.innerHTML = '<div class="message error">Detail is required.</div>';
+            message.innerHTML = '<div class="message error">กรุณาระบุรายละเอียดปัญหา</div>';
             return;
           }
           var tracking = 'REQ-' + Math.floor(1000 + Math.random() * 9000);
@@ -1233,7 +1235,7 @@
           });
           logAction('request.create', { tracking: tracking });
           saveAll();
-          showToast('Request created.');
+          showToast('สร้างคำขอเรียบร้อย');
           renderView();
         });
 
@@ -1251,7 +1253,7 @@
           req.status = 'cancelled';
           logAction('request.cancel', { requestId: req.id });
           saveAll();
-          showToast('Request cancelled.');
+          showToast('ยกเลิกคำขอแล้ว');
           renderView();
         });
       }
@@ -1259,7 +1261,7 @@
       function renderResidentProfile() {
         var resident = getCurrentResident();
         if (!resident) {
-          setContent('<h2>Profile</h2><p class="muted">No resident selected.</p>');
+          setContent('<h2>โปรไฟล์</h2><p class="muted">ยังไม่ได้เลือกผู้พักอาศัย</p>');
           return;
         }
         var unit = getUnitById(resident.unitId);
@@ -1267,35 +1269,35 @@
           return '<tr>' +
             '<td>' + member.name + '</td>' +
             '<td>' + member.relation + '</td>' +
-            '<td><button class="ghost" data-remove-house="' + index + '">Remove</button></td>' +
+            '<td><button class="ghost" data-remove-house="' + index + '">ลบ</button></td>' +
           '</tr>';
         }).join('');
 
         setContent(
-          '<h2>Profile</h2>' +
+          '<h2>โปรไฟล์</h2>' +
           '<div id="profileMessage"></div>' +
           '<div class="card">' +
             '<div class="form-row two">' +
-              '<div><label>Name</label><br><input type="text" id="profileName" value="' + resident.name + '"></div>' +
-              '<div><label>Email</label><br><input type="text" id="profileEmail" value="' + resident.email + '"></div>' +
+              '<div><label>ชื่อ-นามสกุล</label><br><input type="text" id="profileName" value="' + resident.name + '"></div>' +
+              '<div><label>อีเมล</label><br><input type="text" id="profileEmail" value="' + resident.email + '"></div>' +
             '</div>' +
             '<div class="form-row two">' +
-              '<div><label>Phone</label><br><input type="text" id="profilePhone" value="' + resident.phone + '"></div>' +
-              '<div><label>Unit (read-only)</label><br><input type="text" value="' + (unit ? unit.label : '-') + '" disabled></div>' +
+              '<div><label>เบอร์โทร</label><br><input type="text" id="profilePhone" value="' + resident.phone + '"></div>' +
+              '<div><label>หน่วยพัก (อ่านอย่างเดียว)</label><br><input type="text" value="' + (unit ? unit.label : '-') + '" disabled></div>' +
             '</div>' +
-            '<button class="primary" id="saveProfile">Save Profile</button>' +
+            '<button class="primary" id="saveProfile">บันทึกโปรไฟล์</button>' +
           '</div>' +
           '<div class="divider"></div>' +
           '<div class="card">' +
-            '<h3>Household Members</h3>' +
+            '<h3>สมาชิกในบ้าน</h3>' +
             '<div class="form-row two">' +
-              '<div><label>Name</label><br><input type="text" id="houseName"></div>' +
-              '<div><label>Relation</label><br><input type="text" id="houseRelation"></div>' +
+              '<div><label>ชื่อ-นามสกุล</label><br><input type="text" id="houseName"></div>' +
+              '<div><label>ความสัมพันธ์</label><br><input type="text" id="houseRelation"></div>' +
             '</div>' +
-            '<button class="ghost" id="addHousehold">Add Member</button>' +
+            '<button class="ghost" id="addHousehold">เพิ่มสมาชิก</button>' +
             '<div class="table-wrap" style="margin-top:0.75rem;"><table>' +
-              '<thead><tr><th>Name</th><th>Relation</th><th></th></tr></thead>' +
-              '<tbody>' + (householdRows || '<tr><td colspan="3" class="muted">No household members.</td></tr>') + '</tbody>' +
+              '<thead><tr><th>ชื่อ-นามสกุล</th><th>ความสัมพันธ์</th><th></th></tr></thead>' +
+              '<tbody>' + (householdRows || '<tr><td colspan="3" class="muted">ยังไม่มีสมาชิกในบ้าน</td></tr>') + '</tbody>' +
             '</table></div>' +
           '</div>'
         );
@@ -1313,11 +1315,11 @@
           var email = document.getElementById('profileEmail').value.trim();
           var phone = document.getElementById('profilePhone').value.trim();
           if (!name || !email || !phone) {
-            message.innerHTML = '<div class="message error">All fields are required.</div>';
+            message.innerHTML = '<div class="message error">กรุณากรอกข้อมูลให้ครบ</div>';
             return;
           }
           if (email.indexOf('@') === -1) {
-            message.innerHTML = '<div class="message error">Email must contain "@".</div>';
+            message.innerHTML = '<div class="message error">รูปแบบอีเมลไม่ถูกต้อง</div>';
             return;
           }
           resident.name = name;
@@ -1327,7 +1329,7 @@
           if (user) user.name = name;
           logAction('profile.update', { residentId: resident.id });
           saveAll();
-          showToast('Profile updated.');
+          showToast('อัปเดตโปรไฟล์แล้ว');
           renderView();
         });
 
@@ -1343,13 +1345,13 @@
           var name = document.getElementById('houseName').value.trim();
           var relation = document.getElementById('houseRelation').value.trim();
           if (!name || !relation) {
-            message.innerHTML = '<div class="message error">Name and relation are required.</div>';
+            message.innerHTML = '<div class="message error">กรุณาระบุชื่อและความสัมพันธ์</div>';
             return;
           }
           resident.household.push({ name: name, relation: relation });
           logAction('household.add', { residentId: resident.id, name: name });
           saveAll();
-          showToast('Household member added.');
+          showToast('เพิ่มสมาชิกแล้ว');
           renderView();
         });
 
@@ -1359,7 +1361,7 @@
           resident.household.splice(index, 1);
           logAction('household.remove', { residentId: resident.id });
           saveAll();
-          showToast('Household member removed.');
+          showToast('ลบสมาชิกแล้ว');
           renderView();
         });
       }
@@ -1370,25 +1372,25 @@
           return '<option value="' + unit.id + '">' + unit.label + '</option>';
         }).join('');
         setContent(
-          '<h2>Record Water Meter</h2>' +
+          '<h2>บันทึกมิเตอร์น้ำ</h2>' +
           '<div id="waterMessage"></div>' +
           '<div class="card">' +
             '<div class="form-row two">' +
-              '<div><label>Unit</label><br><select id="waterUnit">' + unitOptions + '</select></div>' +
-              '<div><label>Record date</label><br><input type="date" id="waterDate" value="' + toISODate(new Date()) + '"' + (canEdit ? '' : ' disabled') + '></div>' +
+              '<div><label>หน่วยพัก</label><br><select id="waterUnit">' + unitOptions + '</select></div>' +
+              '<div><label>วันที่บันทึก</label><br><input type="date" id="waterDate" value="' + toISODate(new Date()) + '"' + (canEdit ? '' : ' disabled') + '></div>' +
             '</div>' +
             '<div class="form-row two">' +
-              '<div><label>Previous reading</label><br><input type="number" id="waterPrev" disabled></div>' +
-              '<div><label>Current reading</label><br><input type="number" id="waterCurrent" min="0" step="1"' + (canEdit ? '' : ' disabled') + '></div>' +
+              '<div><label>เลขครั้งก่อน</label><br><input type="number" id="waterPrev" disabled></div>' +
+              '<div><label>เลขล่าสุด</label><br><input type="number" id="waterCurrent" min="0" step="1"' + (canEdit ? '' : ' disabled') + '></div>' +
             '</div>' +
             '<div class="form-row two">' +
-              '<div><label>Units used</label><br><input type="number" id="waterUnits" disabled></div>' +
-              '<div><label>Amount</label><br><input type="number" id="waterAmount" disabled></div>' +
+              '<div><label>หน่วยที่ใช้</label><br><input type="number" id="waterUnits" disabled></div>' +
+              '<div><label>จำนวนเงิน</label><br><input type="number" id="waterAmount" disabled></div>' +
             '</div>' +
             '<div class="form-row">' +
-              '<div><label>Note</label><br><input type="text" id="waterNote"' + (canEdit ? '' : ' disabled') + '></div>' +
+              '<div><label>หมายเหตุ</label><br><input type="text" id="waterNote"' + (canEdit ? '' : ' disabled') + '></div>' +
             '</div>' +
-            '<button class="primary" id="saveWater"' + (canEdit ? '' : ' disabled') + '>Save Record</button>' +
+            '<button class="primary" id="saveWater"' + (canEdit ? '' : ' disabled') + '>บันทึกข้อมูล</button>' +
           '</div>'
         );
 
@@ -1425,7 +1427,7 @@
           var prev = Number(document.getElementById('waterPrev').value || 0);
           var current = Number(document.getElementById('waterCurrent').value || 0);
           if (current < prev) {
-            message.innerHTML = '<div class="message error">Current reading must be greater than previous.</div>';
+            message.innerHTML = '<div class="message error">เลขล่าสุดต้องมากกว่าหรือเท่ากับเลขครั้งก่อน</div>';
             return;
           }
           var units = current - prev;
@@ -1450,7 +1452,7 @@
           applyMeterToPayment(unitId, 'water', amount, units);
           logAction('meter.water.record', { unitId: unitId, amount: amount });
           saveAll();
-          showToast('Water meter recorded.');
+          showToast('บันทึกมิเตอร์น้ำแล้ว');
           renderView();
         });
       }
@@ -1480,19 +1482,19 @@
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Record Electricity</h2>' +
+          '<h2>บันทึกค่าไฟ</h2>' +
           '<div id="electricMessage"></div>' +
           '<div class="card">' +
             '<div class="form-row two">' +
-              '<div><label>Period</label><br><input type="text" value="' + getCurrentPeriod() + '" disabled></div>' +
-              '<div><label>Total utility bill</label><br><input type="number" id="totalBill" min="0" step="0.01" value="0"' + (canEdit ? '' : ' disabled') + '></div>' +
+              '<div><label>รอบ</label><br><input type="text" value="' + getCurrentPeriod() + '" disabled></div>' +
+              '<div><label>ยอดตามบิลการไฟฟ้า</label><br><input type="number" id="totalBill" min="0" step="0.01" value="0"' + (canEdit ? '' : ' disabled') + '></div>' +
             '</div>' +
             '<div class="table-wrap"><table>' +
-              '<thead><tr><th>Unit</th><th>Previous</th><th>Amount</th></tr></thead>' +
+              '<thead><tr><th>หน่วยพัก</th><th>ยอดครั้งก่อน</th><th>จำนวนเงิน</th></tr></thead>' +
               '<tbody>' + unitRows + '</tbody>' +
             '</table></div>' +
             '<div class="inline-actions">' +
-              '<button class="primary" id="saveElectric"' + (canEdit ? '' : ' disabled') + '>Save Electricity</button>' +
+              '<button class="primary" id="saveElectric"' + (canEdit ? '' : ' disabled') + '>บันทึกค่าไฟ</button>' +
             '</div>' +
           '</div>'
         );
@@ -1515,7 +1517,7 @@
           });
           var bill = Number(document.getElementById('totalBill').value || 0);
           if (bill && Math.abs(total - bill) > 0.01) {
-            message.innerHTML = '<div class="message warning">Sum of unit amounts does not match total bill. Saving is allowed.</div>';
+            message.innerHTML = '<div class="message warning">ยอดรวมรายหน่วยไม่ตรงกับบิลรวม แต่ยังบันทึกได้</div>';
           }
           inputs.forEach(function (input) {
             var amount = Number(input.value || 0);
@@ -1535,7 +1537,7 @@
           });
           logAction('meter.electric.record', { total: total, bill: bill });
           saveAll();
-          showToast('Electricity records saved.');
+          showToast('บันทึกค่าไฟแล้ว');
         });
       }
 
@@ -1547,18 +1549,18 @@
           var check = app.data.roundChecks.find(function (c) { return c.unitId === unit.id && c.period === period; });
           return '<tr>' +
             '<td>' + unit.label + '</td>' +
-            '<td>' + (water ? 'Yes' : 'No') + '</td>' +
-            '<td>' + (electric ? 'Yes' : 'No') + '</td>' +
-            '<td>' + (check ? 'Reviewed' : 'Pending') + '</td>' +
-            '<td><button class="ghost" data-review="' + unit.id + '">Mark Reviewed</button></td>' +
+            '<td>' + (water ? 'ใช่' : 'ไม่') + '</td>' +
+            '<td>' + (electric ? 'ใช่' : 'ไม่') + '</td>' +
+            '<td>' + (check ? 'ตรวจแล้ว' : 'รอตรวจ') + '</td>' +
+            '<td><button class="ghost" data-review="' + unit.id + '">ทำเครื่องหมายว่าแล้วเสร็จ</button></td>' +
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Round Status</h2>' +
-          '<p class="muted">Track completion for the current period.</p>' +
+          '<h2>สถานะรอบงาน</h2>' +
+          '<p class="muted">ติดตามความครบถ้วนของข้อมูลในรอบปัจจุบัน</p>' +
           '<div id="statusMessage"></div>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Unit</th><th>Water Recorded</th><th>Electric Recorded</th><th>Review</th><th></th></tr></thead>' +
+            '<thead><tr><th>หน่วยพัก</th><th>บันทึกน้ำ</th><th>บันทึกไฟ</th><th>การตรวจ</th><th></th></tr></thead>' +
             '<tbody>' + rows + '</tbody>' +
           '</table></div>'
         );
@@ -1577,7 +1579,7 @@
           });
           logAction('round.review', { unitId: unitId, period: period });
           saveAll();
-          showToast('Marked as reviewed.');
+          showToast('ทำเครื่องหมายว่าแล้วเสร็จแล้ว');
           renderView();
         });
       }
@@ -1586,27 +1588,28 @@
         var requests = app.data.requests.filter(function (req) { return req.type === 'maintenance'; });
         var rows = requests.map(function (req) {
           var resident = app.data.residents.find(function (r) { return r.id === req.residentId; });
+          var statusLabel = req.status === 'open' ? 'เปิดงาน' : (req.status === 'in_progress' ? 'กำลังดำเนินการ' : 'เสร็จแล้ว');
           return '<tr>' +
             '<td>' + req.trackingCode + '</td>' +
             '<td>' + (resident ? resident.name : '-') + '</td>' +
             '<td>' + req.detail + '</td>' +
-            '<td>' + req.status + '</td>' +
+            '<td>' + statusLabel + '</td>' +
             '<td>' +
               '<select data-status="' + req.id + '">' +
-                '<option value="open"' + (req.status === 'open' ? ' selected' : '') + '>open</option>' +
-                '<option value="in_progress"' + (req.status === 'in_progress' ? ' selected' : '') + '>in_progress</option>' +
-                '<option value="done"' + (req.status === 'done' ? ' selected' : '') + '>done</option>' +
+                '<option value="open"' + (req.status === 'open' ? ' selected' : '') + '>เปิดงาน</option>' +
+                '<option value="in_progress"' + (req.status === 'in_progress' ? ' selected' : '') + '>กำลังดำเนินการ</option>' +
+                '<option value="done"' + (req.status === 'done' ? ' selected' : '') + '>เสร็จแล้ว</option>' +
               '</select>' +
             '</td>' +
           '</tr>';
         }).join('');
 
         setContent(
-          '<h2>Work Orders</h2>' +
+          '<h2>งานซ่อมบำรุง</h2>' +
           '<div id="workMessage"></div>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Tracking</th><th>Resident</th><th>Detail</th><th>Status</th><th>Update</th></tr></thead>' +
-            '<tbody>' + (rows || '<tr><td colspan="5" class="muted">No work orders.</td></tr>') + '</tbody>' +
+            '<thead><tr><th>รหัสติดตาม</th><th>ผู้พักอาศัย</th><th>รายละเอียด</th><th>สถานะ</th><th>อัปเดต</th></tr></thead>' +
+            '<tbody>' + (rows || '<tr><td colspan="5" class="muted">ยังไม่มีงานซ่อม</td></tr>') + '</tbody>' +
           '</table></div>'
         );
 
@@ -1625,7 +1628,7 @@
           req.assignedTo = app.state.currentUserId;
           logAction('request.update', { requestId: req.id, status: req.status });
           saveAll();
-          showToast('Request updated.');
+          showToast('อัปเดตสถานะงานแล้ว');
         });
       }
 
@@ -1641,20 +1644,20 @@
             '<td>' + formatMoney(payment.amountPaid) + '</td>' +
             '<td>' + statusTag(payment.status) + '</td>' +
             '<td>' +
-              '<button class="success" data-approve="' + payment.id + '">Approve</button> ' +
-              '<button class="danger" data-reject="' + payment.id + '">Flag</button>' +
+              '<button class="success" data-approve="' + payment.id + '">ยืนยัน</button> ' +
+              '<button class="danger" data-reject="' + payment.id + '">ทำเครื่องหมายผิดปกติ</button>' +
             '</td>' +
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Verify Payments</h2>' +
+          '<h2>ตรวจสอบการชำระเงิน</h2>' +
           '<div id="verifyMessage"></div>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Period</th><th>Resident</th><th>Total Due</th><th>Paid</th><th>Status</th><th>Action</th></tr></thead>' +
+            '<thead><tr><th>รอบ</th><th>ผู้พักอาศัย</th><th>ยอดที่ต้องชำระ</th><th>ยอดชำระ</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>' +
             '<tbody>' + rows + '</tbody>' +
           '</table></div>' +
           '<div class="card" style="margin-top:1rem;">' +
-            '<label>Verification note</label><br><input type="text" id="verifyNote" placeholder="Optional note">' +
+            '<label>หมายเหตุการตรวจสอบ</label><br><input type="text" id="verifyNote" placeholder="ระบุเพิ่มเติม (ถ้ามี)">' +
           '</div>'
         );
 
@@ -1680,7 +1683,7 @@
           };
           logAction('payment.verify', { paymentId: payment.id, approved: isApprove });
           saveAll();
-          showToast('Payment updated.');
+          showToast('อัปเดตการตรวจสอบแล้ว');
           renderView();
         });
       }
@@ -1693,40 +1696,41 @@
         var incomeTotal = entries.filter(function (e) { return e.type === 'income'; }).reduce(function (sum, e) { return sum + Number(e.amount || 0); }, 0);
         var expenseTotal = entries.filter(function (e) { return e.type === 'expense'; }).reduce(function (sum, e) { return sum + Number(e.amount || 0); }, 0);
         var rows = entries.map(function (entry) {
+          var typeLabel = entry.type === 'income' ? 'รายรับ' : 'รายจ่าย';
           return '<tr>' +
             '<td>' + entry.date + '</td>' +
-            '<td>' + entry.type + '</td>' +
+            '<td>' + typeLabel + '</td>' +
             '<td>' + entry.category + '</td>' +
             '<td>' + formatMoney(entry.amount) + '</td>' +
             '<td>' + (entry.note || '-') + '</td>' +
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Ledger</h2>' +
+          '<h2>บัญชีกองกลาง</h2>' +
           '<div class="grid two">' +
-            '<div class="card"><h3>Income</h3><p>' + formatMoney(incomeTotal) + '</p></div>' +
-            '<div class="card"><h3>Expense</h3><p>' + formatMoney(expenseTotal) + '</p></div>' +
+            '<div class="card"><h3>รายรับ</h3><p>' + formatMoney(incomeTotal) + '</p></div>' +
+            '<div class="card"><h3>รายจ่าย</h3><p>' + formatMoney(expenseTotal) + '</p></div>' +
           '</div>' +
           '<div class="card" style="margin-top:1rem;">' +
             '<div class="form-row three">' +
-              '<div><label>Type</label><br><select id="ledgerType"' + (isClosed ? ' disabled' : '') + '>' +
-                '<option value="income">income</option>' +
-                '<option value="expense">expense</option>' +
+              '<div><label>ประเภท</label><br><select id="ledgerType"' + (isClosed ? ' disabled' : '') + '>' +
+                '<option value="income">รายรับ</option>' +
+                '<option value="expense">รายจ่าย</option>' +
               '</select></div>' +
-              '<div><label>Category</label><br><input type="text" id="ledgerCategory"' + (isClosed ? ' disabled' : '') + '></div>' +
-              '<div><label>Amount</label><br><input type="number" id="ledgerAmount" min="0" step="0.01"' + (isClosed ? ' disabled' : '') + '></div>' +
+              '<div><label>หมวดหมู่</label><br><input type="text" id="ledgerCategory"' + (isClosed ? ' disabled' : '') + '></div>' +
+              '<div><label>จำนวนเงิน</label><br><input type="number" id="ledgerAmount" min="0" step="0.01"' + (isClosed ? ' disabled' : '') + '></div>' +
             '</div>' +
             '<div class="form-row two">' +
-              '<div><label>Date</label><br><input type="date" id="ledgerDate" value="' + toISODate(new Date()) + '"' + (isClosed ? ' disabled' : '') + '></div>' +
-              '<div><label>Note</label><br><input type="text" id="ledgerNote"' + (isClosed ? ' disabled' : '') + '></div>' +
+              '<div><label>วันที่</label><br><input type="date" id="ledgerDate" value="' + toISODate(new Date()) + '"' + (isClosed ? ' disabled' : '') + '></div>' +
+              '<div><label>หมายเหตุ</label><br><input type="text" id="ledgerNote"' + (isClosed ? ' disabled' : '') + '></div>' +
             '</div>' +
-            '<button class="primary" id="addLedger"' + (isClosed ? ' disabled' : '') + '>Add Entry</button>' +
-            (isClosed ? '<p class="muted">Round is closed. Ledger is read-only.</p>' : '') +
+            '<button class="primary" id="addLedger"' + (isClosed ? ' disabled' : '') + '>เพิ่มรายการ</button>' +
+            (isClosed ? '<p class="muted">รอบนี้ปิดแล้ว บัญชีเป็นแบบอ่านอย่างเดียว</p>' : '') +
           '</div>' +
           '<div class="divider"></div>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Note</th></tr></thead>' +
-            '<tbody>' + (rows || '<tr><td colspan="5" class="muted">No entries.</td></tr>') + '</tbody>' +
+            '<thead><tr><th>วันที่</th><th>ประเภท</th><th>หมวดหมู่</th><th>จำนวนเงิน</th><th>หมายเหตุ</th></tr></thead>' +
+            '<tbody>' + (rows || '<tr><td colspan="5" class="muted">ยังไม่มีรายการ</td></tr>') + '</tbody>' +
           '</table></div>'
         );
 
@@ -1745,7 +1749,7 @@
             var date = document.getElementById('ledgerDate').value;
             var note = document.getElementById('ledgerNote').value.trim();
             if (!category || amount <= 0) {
-              showToast('Category and amount are required.');
+              showToast('กรุณาระบุหมวดหมู่และจำนวนเงิน');
               return;
             }
             app.data.ledgerEntries.push({
@@ -1760,7 +1764,7 @@
             });
             logAction('ledger.add', { type: type, amount: amount });
             saveAll();
-            showToast('Ledger entry added.');
+            showToast('เพิ่มรายการแล้ว');
             renderView();
           });
         }
@@ -1774,14 +1778,14 @@
           return sum + sign * Number(entry.amount || 0);
         }, 0);
         setContent(
-          '<h2>Bank Reconciliation</h2>' +
+          '<h2>เทียบยอดธนาคาร</h2>' +
           '<div class="card">' +
-            '<p><strong>System balance:</strong> ' + formatMoney(balance) + '</p>' +
+            '<p><strong>ยอดตามระบบ:</strong> ' + formatMoney(balance) + '</p>' +
             '<div class="form-row two">' +
-              '<div><label>Bank balance</label><br><input type="number" id="bankBalance" min="0" step="0.01"></div>' +
-              '<div><label>Note</label><br><input type="text" id="bankNote" placeholder="Optional note"></div>' +
+              '<div><label>ยอดตามธนาคาร</label><br><input type="number" id="bankBalance" min="0" step="0.01"></div>' +
+              '<div><label>หมายเหตุ</label><br><input type="text" id="bankNote" placeholder="ระบุเพิ่มเติม (ถ้ามี)"></div>' +
             '</div>' +
-            '<button class="primary" id="reconcileBtn">Record Reconciliation</button>' +
+            '<button class="primary" id="reconcileBtn">บันทึกการเทียบยอด</button>' +
             '<div id="reconcileMessage"></div>' +
           '</div>'
         );
@@ -1809,9 +1813,9 @@
           saveAll();
           var message = document.getElementById('reconcileMessage');
           message.innerHTML = diff === 0
-            ? '<div class="message success">Balances match.</div>'
-            : '<div class="message warning">Balance difference: ' + formatMoney(diff) + '</div>';
-          showToast('Reconciliation recorded.');
+            ? '<div class="message success">ยอดตรงกัน</div>'
+            : '<div class="message warning">ยอดต่างกัน: ' + formatMoney(diff) + '</div>';
+          showToast('บันทึกการเทียบยอดแล้ว');
         });
       }
 
@@ -1820,20 +1824,20 @@
           return '<option value="' + round.period + '">' + round.period + (round.closed ? ' (closed)' : ' (open)') + '</option>';
         }).join('');
         setContent(
-          '<h2>Close Round</h2>' +
+          '<h2>ปิดรอบการเงิน</h2>' +
           '<div class="card">' +
             '<div class="form-row two">' +
-              '<div><label>Period</label><br><select id="roundPeriod">' + options + '</select></div>' +
-              '<div><label>Status</label><br><input type="text" id="roundStatus" disabled></div>' +
+              '<div><label>รอบ</label><br><select id="roundPeriod">' + options + '</select></div>' +
+              '<div><label>สถานะ</label><br><input type="text" id="roundStatus" disabled></div>' +
             '</div>' +
-            '<button class="primary" id="toggleRound">Toggle Close</button>' +
+            '<button class="primary" id="toggleRound">สลับสถานะปิดรอบ</button>' +
           '</div>'
         );
 
         function updateStatus() {
           var period = document.getElementById('roundPeriod').value;
           var round = app.data.rounds.find(function (r) { return r.period === period; });
-          document.getElementById('roundStatus').value = round && round.closed ? 'Closed' : 'Open';
+          document.getElementById('roundStatus').value = round && round.closed ? 'ปิดแล้ว' : 'เปิดอยู่';
         }
         updateStatus();
         document.getElementById('roundPeriod').addEventListener('change', updateStatus);
@@ -1852,7 +1856,7 @@
           round.closedBy = round.closed ? app.state.currentUserId : null;
           logAction('round.toggle', { period: period, closed: round.closed });
           saveAll();
-          showToast('Round status updated.');
+          showToast('อัปเดตสถานะรอบแล้ว');
           updateStatus();
         });
       }
@@ -1860,37 +1864,38 @@
       function renderAdminUsers() {
         var rows = app.data.users.map(function (user) {
           var resident = user.residentId ? app.data.residents.find(function (r) { return r.id === user.residentId; }) : null;
+          var unitLabel = resident ? (getUnitById(resident.unitId) ? getUnitById(resident.unitId).label : resident.unitId) : '-';
           var roleOptions = app.data.roles.map(function (role) {
             return '<option value="' + role.id + '"' + (role.id === user.role ? ' selected' : '') + '>' + role.name + '</option>';
           }).join('');
           return '<tr>' +
             '<td>' + user.name + '</td>' +
-            '<td>' + (resident ? resident.unitId : '-') + '</td>' +
+            '<td>' + unitLabel + '</td>' +
             '<td><select data-role="' + user.id + '">' + roleOptions + '</select></td>' +
             '<td><select data-status="' + user.id + '">' +
-              '<option value="active"' + (user.status === 'active' ? ' selected' : '') + '>active</option>' +
-              '<option value="inactive"' + (user.status === 'inactive' ? ' selected' : '') + '>inactive</option>' +
+              '<option value="active"' + (user.status === 'active' ? ' selected' : '') + '>ใช้งาน</option>' +
+              '<option value="inactive"' + (user.status === 'inactive' ? ' selected' : '') + '>ระงับ</option>' +
             '</select></td>' +
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Users and Roles</h2>' +
+          '<h2>ผู้ใช้และสิทธิ์</h2>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>User</th><th>Unit</th><th>Role</th><th>Status</th></tr></thead>' +
+            '<thead><tr><th>ผู้ใช้</th><th>หน่วยพัก</th><th>บทบาท</th><th>สถานะ</th></tr></thead>' +
             '<tbody>' + rows + '</tbody>' +
           '</table></div>' +
           '<div class="card" style="margin-top:1rem;">' +
-            '<h3>Add Staff User</h3>' +
+            '<h3>เพิ่มผู้ใช้งานเจ้าหน้าที่</h3>' +
             '<div class="form-row two">' +
-              '<div><label>Name</label><br><input type="text" id="newUserName"></div>' +
-              '<div><label>Role</label><br><select id="newUserRole">' +
-                '<option value="field">Field Committee</option>' +
-                '<option value="accounting">Accounting</option>' +
-                '<option value="admin">Admin</option>' +
-                '<option value="executive">Executive</option>' +
+              '<div><label>ชื่อ-นามสกุล</label><br><input type="text" id="newUserName"></div>' +
+              '<div><label>บทบาท</label><br><select id="newUserRole">' +
+                '<option value="field">คณะกรรมการภาคสนาม</option>' +
+                '<option value="accounting">งานบัญชี</option>' +
+                '<option value="admin">แอดมิน</option>' +
+                '<option value="executive">ผู้บริหาร</option>' +
               '</select></div>' +
             '</div>' +
-            '<button class="primary" id="addUserBtn">Add User</button>' +
+            '<button class="primary" id="addUserBtn">เพิ่มผู้ใช้</button>' +
           '</div>'
         );
 
@@ -1934,13 +1939,13 @@
           var name = document.getElementById('newUserName').value.trim();
           var role = document.getElementById('newUserRole').value;
           if (!name) {
-            showToast('Name is required.');
+            showToast('กรุณาระบุชื่อ');
             return;
           }
           app.data.users.push({ id: 'user-' + Date.now(), name: name, role: role, status: 'active' });
           logAction('user.add', { name: name, role: role });
           saveAll();
-          showToast('User added.');
+          showToast('เพิ่มผู้ใช้แล้ว');
           renderUserOptions();
           renderView();
         });
@@ -1949,25 +1954,25 @@
       function renderAdminConfig() {
         var cfg = app.data.config;
         setContent(
-          '<h2>System Settings</h2>' +
+          '<h2>ตั้งค่าระบบ</h2>' +
           '<div id="configMessage"></div>' +
           '<div class="card">' +
             '<div class="form-row three">' +
-              '<div><label>Water rate</label><br><input type="number" id="cfgWaterRate" min="0" step="0.01" value="' + cfg.waterRate + '"></div>' +
-              '<div><label>Common fee</label><br><input type="number" id="cfgCommonFee" min="0" step="0.01" value="' + cfg.commonFee + '"></div>' +
-              '<div><label>Payment working days</label><br><input type="number" id="cfgWorkingDays" min="1" step="1" value="' + cfg.paymentWorkingDays + '"></div>' +
+              '<div><label>ราคาค่าน้ำต่อหน่วย</label><br><input type="number" id="cfgWaterRate" min="0" step="0.01" value="' + cfg.waterRate + '"></div>' +
+              '<div><label>ค่าส่วนกลาง</label><br><input type="number" id="cfgCommonFee" min="0" step="0.01" value="' + cfg.commonFee + '"></div>' +
+              '<div><label>กำหนดชำระ (วันทำการ)</label><br><input type="number" id="cfgWorkingDays" min="1" step="1" value="' + cfg.paymentWorkingDays + '"></div>' +
             '</div>' +
             '<div class="form-row two">' +
-              '<div><label>Approval required (water)</label><br><select id="cfgWaterApproval">' +
-                '<option value="true"' + (cfg.approvalRequired.water ? ' selected' : '') + '>true</option>' +
-                '<option value="false"' + (!cfg.approvalRequired.water ? ' selected' : '') + '>false</option>' +
+              '<div><label>ต้องอนุมัติ (น้ำ)</label><br><select id="cfgWaterApproval">' +
+                '<option value="true"' + (cfg.approvalRequired.water ? ' selected' : '') + '>ใช่</option>' +
+                '<option value="false"' + (!cfg.approvalRequired.water ? ' selected' : '') + '>ไม่</option>' +
               '</select></div>' +
-              '<div><label>Approval required (electric)</label><br><select id="cfgElectricApproval">' +
-                '<option value="true"' + (cfg.approvalRequired.electricity ? ' selected' : '') + '>true</option>' +
-                '<option value="false"' + (!cfg.approvalRequired.electricity ? ' selected' : '') + '>false</option>' +
+              '<div><label>ต้องอนุมัติ (ไฟ)</label><br><select id="cfgElectricApproval">' +
+                '<option value="true"' + (cfg.approvalRequired.electricity ? ' selected' : '') + '>ใช่</option>' +
+                '<option value="false"' + (!cfg.approvalRequired.electricity ? ' selected' : '') + '>ไม่</option>' +
               '</select></div>' +
             '</div>' +
-            '<button class="primary" id="saveConfig">Save Settings</button>' +
+            '<button class="primary" id="saveConfig">บันทึกการตั้งค่า</button>' +
           '</div>'
         );
 
@@ -1984,7 +1989,7 @@
           var commonFee = Number(document.getElementById('cfgCommonFee').value || 0);
           var workingDays = Number(document.getElementById('cfgWorkingDays').value || 0);
           if (waterRate <= 0 || commonFee < 0 || workingDays <= 0) {
-            message.innerHTML = '<div class="message error">Please enter valid numeric values.</div>';
+            message.innerHTML = '<div class="message error">กรุณาระบุตัวเลขให้ถูกต้อง</div>';
             return;
           }
           cfg.waterRate = waterRate;
@@ -1994,8 +1999,8 @@
           cfg.approvalRequired.electricity = document.getElementById('cfgElectricApproval').value === 'true';
           logAction('config.update', { waterRate: waterRate, commonFee: commonFee, workingDays: workingDays });
           saveAll();
-          message.innerHTML = '<div class="message success">Settings saved.</div>';
-          showToast('Settings updated.');
+          message.innerHTML = '<div class="message success">บันทึกการตั้งค่าแล้ว</div>';
+          showToast('อัปเดตการตั้งค่าแล้ว');
         });
       }
 
@@ -2005,21 +2010,22 @@
         }).join('');
         var rows = app.data.units.map(function (unit) {
           var statusOptions = ['occupied', 'vacant'].map(function (status) {
-            return '<option value="' + status + '"' + (status === unit.status ? ' selected' : '') + '>' + status + '</option>';
+            var label = status === 'occupied' ? 'มีผู้พัก' : 'ว่าง';
+            return '<option value="' + status + '"' + (status === unit.status ? ' selected' : '') + '>' + label + '</option>';
           }).join('');
           return '<tr>' +
             '<td>' + unit.label + '</td>' +
             '<td><select data-unit-status="' + unit.id + '">' + statusOptions + '</select></td>' +
             '<td><select data-unit-resident="' + unit.id + '">' +
-              '<option value="">-- none --</option>' + residentOptions +
+              '<option value="">-- ไม่มีผู้พัก --</option>' + residentOptions +
             '</select></td>' +
-            '<td><button class="ghost" data-unit-save="' + unit.id + '">Save</button></td>' +
+            '<td><button class="ghost" data-unit-save="' + unit.id + '">บันทึก</button></td>' +
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Housing Units</h2>' +
+          '<h2>หน่วยพัก/แฟลต</h2>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Unit</th><th>Status</th><th>Resident</th><th></th></tr></thead>' +
+            '<thead><tr><th>หน่วยพัก</th><th>สถานะ</th><th>ผู้พักอาศัย</th><th></th></tr></thead>' +
             '<tbody>' + rows + '</tbody>' +
           '</table></div>'
         );
@@ -2049,34 +2055,37 @@
           });
           logAction('unit.update', { unitId: unitId, status: unit.status, residentId: unit.residentId });
           saveAll();
-          showToast('Unit updated.');
+          showToast('อัปเดตหน่วยพักแล้ว');
         });
       }
 
       function renderAdminApplications() {
         var apps = app.data.requests.filter(function (req) { return req.type === 'application'; });
         var rows = apps.map(function (req) {
+          var statusLabel = req.status === 'pending' ? 'รอพิจารณา' :
+            (req.status === 'queued' ? 'อยู่ในคิว' :
+              (req.status === 'rejected' ? 'ไม่ผ่าน' : 'อนุมัติ'));
           return '<tr>' +
             '<td>' + req.trackingCode + '</td>' +
             '<td>' + req.applicantName + '</td>' +
-            '<td>' + req.status + '</td>' +
+            '<td>' + statusLabel + '</td>' +
             '<td><input type="number" data-queue="' + req.id + '" min="1" value="' + (req.queueOrder || '') + '"></td>' +
             '<td>' +
               '<select data-app-status="' + req.id + '">' +
-                '<option value="pending"' + (req.status === 'pending' ? ' selected' : '') + '>pending</option>' +
-                '<option value="queued"' + (req.status === 'queued' ? ' selected' : '') + '>queued</option>' +
-                '<option value="rejected"' + (req.status === 'rejected' ? ' selected' : '') + '>rejected</option>' +
-                '<option value="approved"' + (req.status === 'approved' ? ' selected' : '') + '>approved</option>' +
+                '<option value="pending"' + (req.status === 'pending' ? ' selected' : '') + '>รอพิจารณา</option>' +
+                '<option value="queued"' + (req.status === 'queued' ? ' selected' : '') + '>อยู่ในคิว</option>' +
+                '<option value="rejected"' + (req.status === 'rejected' ? ' selected' : '') + '>ไม่ผ่าน</option>' +
+                '<option value="approved"' + (req.status === 'approved' ? ' selected' : '') + '>อนุมัติ</option>' +
               '</select>' +
             '</td>' +
-            '<td><button class="ghost" data-app-save="' + req.id + '">Save</button></td>' +
+            '<td><button class="ghost" data-app-save="' + req.id + '">บันทึก</button></td>' +
           '</tr>';
         }).join('');
         setContent(
-          '<h2>Applications and Queue</h2>' +
+          '<h2>คำร้องและคิว</h2>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Tracking</th><th>Name</th><th>Status</th><th>Queue</th><th>Update</th><th></th></tr></thead>' +
-            '<tbody>' + (rows || '<tr><td colspan="6" class="muted">No applications.</td></tr>') + '</tbody>' +
+            '<thead><tr><th>รหัสติดตาม</th><th>ชื่อผู้ยื่น</th><th>สถานะ</th><th>คิว</th><th>อัปเดต</th><th></th></tr></thead>' +
+            '<tbody>' + (rows || '<tr><td colspan="6" class="muted">ยังไม่มีคำร้อง</td></tr>') + '</tbody>' +
           '</table></div>'
         );
         content.addEventListener('click', function (event) {
@@ -2100,7 +2109,7 @@
           }
           logAction('application.update', { requestId: req.id, status: req.status, queueOrder: req.queueOrder });
           saveAll();
-          showToast('Application updated.');
+          showToast('อัปเดตคำร้องแล้ว');
           renderView();
         });
       }
@@ -2135,19 +2144,19 @@
 
       function renderAdminData() {
         setContent(
-          '<h2>Import and Export</h2>' +
+          '<h2>นำเข้าและส่งออก</h2>' +
           '<div class="card">' +
             '<div class="inline-actions">' +
-              '<button class="primary" id="exportJson">Export JSON</button>' +
-              '<button class="ghost" id="exportCsv">Export CSV</button>' +
+              '<button class="primary" id="exportJson">ส่งออก JSON</button>' +
+              '<button class="ghost" id="exportCsv">ส่งออก CSV</button>' +
             '</div>' +
           '</div>' +
           '<div class="card" style="margin-top:1rem;">' +
-            '<label>Import JSON</label>' +
-            '<textarea id="importText" placeholder="Paste JSON here"></textarea>' +
+            '<label>นำเข้า JSON</label>' +
+            '<textarea id="importText" placeholder="วาง JSON ที่นี่"></textarea>' +
             '<div class="form-row two">' +
               '<div><input type="file" id="importFile" accept="application/json"></div>' +
-              '<div><button class="primary" id="importBtn">Import</button></div>' +
+              '<div><button class="primary" id="importBtn">นำเข้า</button></div>' +
             '</div>' +
             '<div id="importMessage"></div>' +
           '</div>'
@@ -2162,7 +2171,7 @@
           }
           var bundle = { data: app.data, audit: app.audit };
           downloadFile('teacher-housing-data.json', JSON.stringify(bundle, null, 2), 'application/json');
-          showToast('JSON exported.');
+          showToast('ส่งออก JSON แล้ว');
         });
 
         document.getElementById('exportCsv').addEventListener('click', function () {
@@ -2192,7 +2201,7 @@
           downloadFile('meter-records.csv', toCsv(meters), 'text/csv');
           downloadFile('requests.csv', toCsv(requests), 'text/csv');
           downloadFile('audit.csv', toCsv(audit), 'text/csv');
-          showToast('CSV exported.');
+          showToast('ส่งออก CSV แล้ว');
         });
 
         document.getElementById('importFile').addEventListener('change', function (event) {
@@ -2216,7 +2225,7 @@
           }
           var text = document.getElementById('importText').value.trim();
           if (!text) {
-            message.innerHTML = '<div class="message error">Paste JSON first.</div>';
+            message.innerHTML = '<div class="message error">กรุณาวาง JSON ก่อน</div>';
             return;
           }
           try {
@@ -2224,18 +2233,18 @@
             var payload = parsed.data ? parsed.data : parsed;
             var errors = validateDataShape(payload);
             if (errors.length) {
-              message.innerHTML = '<div class="message error">Invalid schema: ' + errors.join(', ') + '</div>';
+              message.innerHTML = '<div class="message error">โครงสร้างข้อมูลไม่ถูกต้อง: ' + errors.join(', ') + '</div>';
               return;
             }
             app.data = payload;
             app.audit = parsed.audit || [];
             saveAll();
             saveState(app.state);
-            showToast('Data imported.');
+            showToast('นำเข้าข้อมูลแล้ว');
             renderMenu();
             renderView();
           } catch (err) {
-            message.innerHTML = '<div class="message error">Invalid JSON.</div>';
+            message.innerHTML = '<div class="message error">รูปแบบ JSON ไม่ถูกต้อง</div>';
           }
         });
       }
@@ -2255,24 +2264,32 @@
       }
 
       function renderAdminAudit() {
-        var roleOptions = ['<option value="all">All roles</option>'].concat(
+        var roleOptions = ['<option value="all">ทุกบทบาท</option>'].concat(
           app.data.roles.map(function (role) {
             return '<option value="' + role.id + '">' + role.name + '</option>';
           })
         ).join('');
         setContent(
-          '<h2>Audit Log</h2>' +
+          '<h2>บันทึกการทำรายการ</h2>' +
           '<div class="form-row two">' +
-            '<div><label>Filter action</label><br><input type="text" id="auditActionFilter" placeholder="e.g. payment"></div>' +
-            '<div><label>Role</label><br><select id="auditRoleFilter">' + roleOptions + '</select></div>' +
+            '<div><label>กรองตามการกระทำ</label><br><input type="text" id="auditActionFilter" placeholder="เช่น payment"></div>' +
+            '<div><label>บทบาท</label><br><select id="auditRoleFilter">' + roleOptions + '</select></div>' +
           '</div>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Time</th><th>Actor</th><th>Role</th><th>Action</th><th>Details</th></tr></thead>' +
+            '<thead><tr><th>เวลา</th><th>ผู้ทำรายการ</th><th>บทบาท</th><th>การกระทำ</th><th>รายละเอียด</th></tr></thead>' +
             '<tbody id="auditBody"></tbody>' +
           '</table></div>'
         );
 
         function updateAudit() {
+          var roleLabelMap = {
+            resident: 'ผู้พักอาศัย',
+            field: 'คณะกรรมการภาคสนาม',
+            accounting: 'งานบัญชี',
+            admin: 'แอดมิน',
+            executive: 'ผู้บริหาร',
+            applicant: 'ผู้ขอเข้าพัก'
+          };
           var actionFilter = document.getElementById('auditActionFilter').value.trim().toLowerCase();
           var roleFilter = document.getElementById('auditRoleFilter').value;
           var rows = app.audit.filter(function (entry) {
@@ -2280,15 +2297,16 @@
             var roleMatch = roleFilter === 'all' || entry.role === roleFilter;
             return actionMatch && roleMatch;
           }).map(function (entry) {
+            var roleLabel = roleLabelMap[entry.role] || entry.role;
             return '<tr>' +
               '<td>' + entry.timestamp + '</td>' +
               '<td>' + entry.actor + '</td>' +
-              '<td>' + entry.role + '</td>' +
+              '<td>' + roleLabel + '</td>' +
               '<td>' + entry.action + '</td>' +
               '<td>' + JSON.stringify(entry.details || {}) + '</td>' +
             '</tr>';
           }).join('');
-          document.getElementById('auditBody').innerHTML = rows || '<tr><td colspan="5" class="muted">No audit entries.</td></tr>';
+          document.getElementById('auditBody').innerHTML = rows || '<tr><td colspan="5" class="muted">ยังไม่มีบันทึก</td></tr>';
         }
 
         document.getElementById('auditActionFilter').addEventListener('input', updateAudit);
@@ -2301,10 +2319,10 @@
           return '<option value="' + round.period + '">' + round.period + '</option>';
         }).join('');
         setContent(
-          '<h2>Executive Dashboard</h2>' +
+          '<h2>แดชบอร์ดผู้บริหาร</h2>' +
           '<div class="form-row two">' +
-            '<div><label>Period</label><br><select id="execPeriod">' + periodOptions + '</select></div>' +
-            '<div><label>Summary</label><br><input type="text" id="execSummary" disabled></div>' +
+            '<div><label>รอบ</label><br><select id="execPeriod">' + periodOptions + '</select></div>' +
+            '<div><label>สรุป</label><br><input type="text" id="execSummary" disabled></div>' +
           '</div>' +
           '<div id="execCards" class="grid two"></div>'
         );
@@ -2322,12 +2340,12 @@
             var sign = entry.type === 'income' ? 1 : -1;
             return sum + sign * Number(entry.amount || 0);
           }, 0);
-          document.getElementById('execSummary').value = 'Paid rate ' + rate + '% | Late ' + lateCount;
+          document.getElementById('execSummary').value = 'อัตราชำระแล้ว ' + rate + '% | ค้างชำระ ' + lateCount;
           document.getElementById('execCards').innerHTML =
-            '<div class="card"><h3>Units</h3><p>Occupied: ' + occupied + '</p><p>Vacant: ' + vacant + '</p></div>' +
-            '<div class="card"><h3>Payments</h3><p>Paid: ' + paidCount + ' / ' + payments.length + '</p><p>Late: ' + lateCount + '</p></div>' +
-            '<div class="card"><h3>Central Fund</h3><p>Balance: ' + formatMoney(balance) + '</p></div>' +
-            '<div class="card"><h3>Applications</h3><p>Total: ' + app.data.requests.filter(function (r) { return r.type === "application"; }).length + '</p></div>';
+            '<div class="card"><h3>หน่วยพัก</h3><p>มีผู้พัก: ' + occupied + '</p><p>ว่าง: ' + vacant + '</p></div>' +
+            '<div class="card"><h3>การชำระเงิน</h3><p>ชำระแล้ว: ' + paidCount + ' / ' + payments.length + '</p><p>ค้างชำระ: ' + lateCount + '</p></div>' +
+            '<div class="card"><h3>กองกลาง</h3><p>ยอดคงเหลือ: ' + formatMoney(balance) + '</p></div>' +
+            '<div class="card"><h3>คำร้อง</h3><p>ทั้งหมด: ' + app.data.requests.filter(function (r) { return r.type === "application"; }).length + '</p></div>';
         }
 
         updateDashboard();
@@ -2339,16 +2357,16 @@
           return '<option value="' + round.period + '">' + round.period + '</option>';
         }).join('');
         setContent(
-          '<h2>Reports</h2>' +
+          '<h2>รายงาน</h2>' +
           '<div class="card">' +
             '<div class="form-row two">' +
-              '<div><label>From</label><br><select id="reportFrom">' + periodOptions + '</select></div>' +
-              '<div><label>To</label><br><select id="reportTo">' + periodOptions + '</select></div>' +
+              '<div><label>จาก</label><br><select id="reportFrom">' + periodOptions + '</select></div>' +
+              '<div><label>ถึง</label><br><select id="reportTo">' + periodOptions + '</select></div>' +
             '</div>' +
             '<div class="inline-actions">' +
-              '<button class="primary" id="generateReport">Generate Report</button>' +
-              '<button class="ghost" id="downloadReportJson">Download JSON</button>' +
-              '<button class="ghost" id="downloadReportCsv">Download CSV</button>' +
+              '<button class="primary" id="generateReport">สร้างรายงาน</button>' +
+              '<button class="ghost" id="downloadReportJson">ดาวน์โหลด JSON</button>' +
+              '<button class="ghost" id="downloadReportCsv">ดาวน์โหลด CSV</button>' +
             '</div>' +
             '<div id="reportOutput" class="message" style="margin-top:0.75rem; display:none;"></div>' +
           '</div>'
@@ -2379,10 +2397,10 @@
           var output = document.getElementById('reportOutput');
           output.style.display = 'block';
           output.className = 'message';
-          output.innerHTML = 'Report for ' + report.from + ' to ' + report.to +
-            '<br>Total due: ' + formatMoney(report.totalDue) +
-            '<br>Total paid: ' + formatMoney(report.totalPaid) +
-            '<br>Late payments: ' + report.lateCount;
+          output.innerHTML = 'รายงานช่วง ' + report.from + ' ถึง ' + report.to +
+            '<br>ยอดที่ต้องชำระรวม: ' + formatMoney(report.totalDue) +
+            '<br>ยอดที่ชำระแล้ว: ' + formatMoney(report.totalPaid) +
+            '<br>รายการค้างชำระ: ' + report.lateCount;
           logAction('report.generate', report);
           saveAll();
         });
@@ -2399,13 +2417,13 @@
 
       function renderExecutiveResidents() {
         setContent(
-          '<h2>Resident Lookup</h2>' +
+          '<h2>ค้นหาผู้พักอาศัย</h2>' +
           '<div class="form-row two">' +
-            '<div><label>Search</label><br><input type="text" id="resSearch" placeholder="Name or unit"></div>' +
-            '<div><label>Result count</label><br><input type="text" id="resCount" disabled></div>' +
+            '<div><label>ค้นหา</label><br><input type="text" id="resSearch" placeholder="ชื่อหรือหน่วยพัก"></div>' +
+            '<div><label>จำนวนผลลัพธ์</label><br><input type="text" id="resCount" disabled></div>' +
           '</div>' +
           '<div class="table-wrap"><table>' +
-            '<thead><tr><th>Name</th><th>Unit</th><th>Status</th></tr></thead>' +
+            '<thead><tr><th>ชื่อ-นามสกุล</th><th>หน่วยพัก</th><th>สถานะ</th></tr></thead>' +
             '<tbody id="resLookupBody"></tbody>' +
           '</table></div>'
         );
@@ -2416,10 +2434,11 @@
             var unit = getUnitById(res.unitId);
             return !query || res.name.toLowerCase().indexOf(query) !== -1 || (unit && unit.label.toLowerCase().indexOf(query) !== -1);
           });
-          document.getElementById('resCount').value = results.length + ' result(s)';
+          document.getElementById('resCount').value = results.length + ' รายการ';
           document.getElementById('resLookupBody').innerHTML = results.map(function (res) {
             var unit = getUnitById(res.unitId);
-            return '<tr><td>' + res.name + '</td><td>' + (unit ? unit.label : '-') + '</td><td>' + res.status + '</td></tr>';
+            var statusLabel = res.status === 'active' ? 'ใช้งาน' : 'ไม่ใช้งาน';
+            return '<tr><td>' + res.name + '</td><td>' + (unit ? unit.label : '-') + '</td><td>' + statusLabel + '</td></tr>';
           }).join('');
           logAction('resident.lookup', { query: query });
           saveAll();
@@ -2435,24 +2454,24 @@
 
       function renderApplicantApply() {
         setContent(
-          '<h2>Apply for Housing</h2>' +
+          '<h2>ยื่นคำร้องขอเข้าพัก</h2>' +
           '<div id="applyMessage"></div>' +
           '<div class="card">' +
             '<div class="form-row two">' +
-              '<div><label>Name</label><br><input type="text" id="appName"></div>' +
-              '<div><label>Email</label><br><input type="text" id="appEmail"></div>' +
+              '<div><label>ชื่อ-นามสกุล</label><br><input type="text" id="appName"></div>' +
+              '<div><label>อีเมล</label><br><input type="text" id="appEmail"></div>' +
             '</div>' +
             '<div class="form-row two">' +
-              '<div><label>Phone</label><br><input type="text" id="appPhone"></div>' +
-              '<div><label>Desired unit type</label><br><select id="appUnitType">' +
-                '<option value="flat">flat</option>' +
-                '<option value="house">house</option>' +
+              '<div><label>เบอร์โทร</label><br><input type="text" id="appPhone"></div>' +
+              '<div><label>ประเภทหน่วยพักที่ต้องการ</label><br><select id="appUnitType">' +
+                '<option value="flat">แฟลต</option>' +
+                '<option value="house">บ้านพัก</option>' +
               '</select></div>' +
             '</div>' +
             '<div class="form-row">' +
-              '<div><label>Note</label><br><input type="text" id="appNote"></div>' +
+              '<div><label>หมายเหตุ</label><br><input type="text" id="appNote"></div>' +
             '</div>' +
-            '<button class="primary" id="submitApp">Submit Application</button>' +
+            '<button class="primary" id="submitApp">ส่งคำร้อง</button>' +
           '</div>'
         );
 
@@ -2469,7 +2488,7 @@
           var email = document.getElementById('appEmail').value.trim();
           var phone = document.getElementById('appPhone').value.trim();
           if (!name || !email || email.indexOf('@') === -1) {
-            message.innerHTML = '<div class="message error">Name and valid email are required.</div>';
+            message.innerHTML = '<div class="message error">กรุณาระบุชื่อและอีเมลที่ถูกต้อง</div>';
             return;
           }
           var tracking = 'APP-' + Math.floor(1000 + Math.random() * 9000);
@@ -2487,20 +2506,20 @@
           });
           logAction('application.create', { tracking: tracking });
           saveAll();
-          message.innerHTML = '<div class="message success">Application submitted. Tracking code: ' + tracking + '</div>';
-          showToast('Application submitted.');
+          message.innerHTML = '<div class="message success">ส่งคำร้องแล้ว รหัสติดตาม: ' + tracking + '</div>';
+          showToast('ส่งคำร้องแล้ว');
         });
       }
 
       function renderApplicantTrack() {
         setContent(
-          '<h2>Track Application</h2>' +
+          '<h2>ติดตามคำร้อง</h2>' +
           '<div class="card">' +
             '<div class="form-row two">' +
-              '<div><label>Tracking code</label><br><input type="text" id="trackCode" placeholder="APP-XXXX"></div>' +
-              '<div><label>Email (optional)</label><br><input type="text" id="trackEmail"></div>' +
+              '<div><label>รหัสติดตาม</label><br><input type="text" id="trackCode" placeholder="APP-XXXX"></div>' +
+              '<div><label>อีเมล (ถ้ามี)</label><br><input type="text" id="trackEmail"></div>' +
             '</div>' +
-            '<button class="primary" id="trackBtn">Track</button>' +
+            '<button class="primary" id="trackBtn">ตรวจสอบ</button>' +
             '<div id="trackResult" style="margin-top:0.75rem;"></div>' +
           '</div>'
         );
@@ -2521,10 +2540,13 @@
           });
           var output = document.getElementById('trackResult');
           if (!req) {
-            output.innerHTML = '<div class="message error">No application found.</div>';
+            output.innerHTML = '<div class="message error">ไม่พบคำร้อง</div>';
             return;
           }
-          output.innerHTML = '<div class="message success">Status: ' + req.status + ' | Queue: ' + (req.queueOrder || '-') + '</div>';
+          var statusLabel = req.status === 'pending' ? 'รอพิจารณา' :
+            (req.status === 'queued' ? 'อยู่ในคิว' :
+              (req.status === 'rejected' ? 'ไม่ผ่าน' : 'อนุมัติ'));
+          output.innerHTML = '<div class="message success">สถานะ: ' + statusLabel + ' | คิว: ' + (req.queueOrder || '-') + '</div>';
           logAction('application.track', { tracking: req.trackingCode });
           saveAll();
         });
@@ -2532,15 +2554,15 @@
 
       function renderApplicantAbout() {
         setContent(
-          '<h2>About Housing</h2>' +
+          '<h2>เกี่ยวกับบ้านพัก</h2>' +
           '<div class="card">' +
-            '<p>This offline demo includes mock data for housing management. All data stays in your browser.</p>' +
-            '<button class="ghost" id="toggleAbout">Toggle details</button>' +
+            '<p>เดโมออฟไลน์นี้ใช้ข้อมูลจำลอง ข้อมูลทั้งหมดอยู่ในเบราว์เซอร์ของคุณเท่านั้น</p>' +
+            '<button class="ghost" id="toggleAbout">แสดง/ซ่อนรายละเอียด</button>' +
             '<div id="aboutDetails" style="display:none; margin-top:0.75rem;">' +
               '<ul>' +
-                '<li>Units and flats by zone</li>' +
-                '<li>Eligibility summary</li>' +
-                '<li>Application queue rules</li>' +
+                '<li>หน่วยพักและแฟลตตามโซน</li>' +
+                '<li>สรุปคุณสมบัติผู้เข้าพัก</li>' +
+                '<li>กติกาการจัดคิวคำร้อง</li>' +
               '</ul>' +
             '</div>' +
           '</div>'
@@ -2593,7 +2615,7 @@
         if (handler) {
           handler();
         } else {
-          setContent('<h2>Welcome</h2><p class="muted">Select a menu item to begin.</p>');
+          setContent('<h2>ยินดีต้อนรับ</h2><p class="muted">เลือกเมนูด้านซ้ายเพื่อเริ่มต้น</p>');
         }
       }
 
@@ -2620,7 +2642,7 @@
         setViewForRole(app.state.currentRole);
         saveAll();
         saveState(app.state);
-        showToast('Data reset to mock.');
+        showToast('รีเซ็ตข้อมูลเป็นค่าเริ่มต้นแล้ว');
         renderRoleOptions();
         renderUserOptions();
         renderMenu();
