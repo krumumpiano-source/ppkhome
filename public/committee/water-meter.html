@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บันทึกมิเตอร์น้ำ - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>บันทึกมิเตอร์น้ำ</h2>
+      <div id="alert" class="alert hide"></div>
+      <form id="form">
+        <div class="form-group"><label>หน่วย (บ้าน/แฟลต)</label><input type="text" id="unitId" required placeholder="1 หรือ F1"></div>
+        <div id="prevInfo" class="text-muted"></div>
+        <div class="form-group"><label>เลขมิเตอร์ล่าสุด</label><input type="number" id="currentReading" required step="0.01"></div>
+        <div class="form-group"><label>หมายเหตุ</label><input type="text" id="note"></div>
+        <button type="submit" class="btn">บันทึก</button>
+      </form>
+    </div>
+    <div class="card" style="margin-top: 20px;">
+      <h3>สร้างรายงานเสนอผู้บริหาร</h3>
+      <div class="form-group">
+        <label>เลือกรอบการเรียกเก็บ</label>
+        <select id="reportRoundId" class="form-control">
+          <option value="">กำลังโหลด...</option>
+        </select>
+      </div>
+      <button type="button" id="btnGenerateReport" class="btn btn-primary" style="background-color: #007bff; color: white;">สร้างรายงาน</button>
+      <div id="reportAlert" class="alert hide" style="margin-top: 10px;"></div>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script src="../assets/js/water-report.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'committee' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('committee/water');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+    document.getElementById('unitId').addEventListener('blur', function () {
+      var u = this.value.trim();
+      if (!u) return;
+      API.run('getWaterFormData', { sessionId: Auth.getSessionId(), unitId: u }, function (res) {
+        var el = document.getElementById('prevInfo');
+        if (!res.success) { el.textContent = res.message; return; }
+        el.innerHTML = 'เลขครั้งก่อน: ' + (res.prevReading != null ? res.prevReading : '-') + ' · ราคาต่อหน่วย: ' + formatNumber(res.ratePerUnit) + ' บาท';
+      });
+    });
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var unitId = document.getElementById('unitId').value.trim();
+      var roundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);
+      API.run('submitWaterReading', {
+        sessionId: Auth.getSessionId(),
+        roundId: roundId,
+        unitId: unitId,
+        currentReading: document.getElementById('currentReading').value,
+        note: document.getElementById('note').value
+      }, function (res) {
+        var alertEl = document.getElementById('alert');
+        alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
+        alertEl.textContent = res.message;
+        alertEl.classList.remove('hide');
+        if (res.success) document.getElementById('currentReading').value = '';
+      });
+    });
+    
+    // โหลดรายการรอบการเรียกเก็บ
+    function loadBillingRounds() {
+      API.run('getBillingRounds', { sessionId: Auth.getSessionId() }, function(res) {
+        var select = document.getElementById('reportRoundId');
+        if (!res.success || !res.rounds || res.rounds.length === 0) {
+          select.innerHTML = '<option value="">ไม่มีข้อมูลรอบการเรียกเก็บ</option>';
+          return;
+        }
+        select.innerHTML = '';
+        res.rounds.forEach(function(round) {
+          var option = document.createElement('option');
+          option.value = round.roundId;
+          var monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                           'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+          option.textContent = round.roundId + ' (' + monthNames[round.month - 1] + ' ' + round.year + ')';
+          select.appendChild(option);
+        });
+        // เลือกรอบปัจจุบันเป็นค่าเริ่มต้น
+        var currentRoundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);
+        if (res.rounds.find(r => r.roundId === currentRoundId)) {
+          select.value = currentRoundId;
+        } else if (res.rounds.length > 0) {
+          select.value = res.rounds[0].roundId;
+        }
+      });
+    }
+    
+    // สร้างรายงาน
+    document.getElementById('btnGenerateReport').addEventListener('click', function() {
+      var roundId = document.getElementById('reportRoundId').value;
+      if (!roundId) {
+        var alertEl = document.getElementById('reportAlert');
+        alertEl.className = 'alert alert-error';
+        alertEl.textContent = 'กรุณาเลือกรอบการเรียกเก็บ';
+        alertEl.classList.remove('hide');
+        return;
+      }
+      
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'กำลังสร้างรายงาน...';
+      
+      WaterReport.generate(roundId, function(res) {
+        btn.disabled = false;
+        btn.textContent = 'สร้างรายงาน';
+        var alertEl = document.getElementById('reportAlert');
+        if (res.success) {
+          alertEl.className = 'alert alert-success';
+          alertEl.textContent = 'สร้างรายงานเรียบร้อย กรุณาดูในหน้าต่างใหม่';
+        } else {
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'เกิดข้อผิดพลาดในการสร้างรายงาน';
+        }
+        alertEl.classList.remove('hide');
+      });
+    });
+    
+    // โหลดรายการรอบเมื่อโหลดหน้า
+    loadBillingRounds();
+  </script>
+</body>
+</html>

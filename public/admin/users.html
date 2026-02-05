@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการผู้ใช้ - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+  <style>
+    .user-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #fff;
+    }
+    .user-card.moved_out {
+      border-left: 4px solid #6c757d;
+      opacity: 0.7;
+    }
+    .user-card.active {
+      border-left: 4px solid #28a745;
+    }
+    .user-card.inactive {
+      border-left: 4px solid #ffc107;
+    }
+    .user-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .user-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .user-info-item {
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+    .user-info-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #495057;
+    }
+    .user-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .btn-move-out {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-move-out:hover {
+      background-color: #c82333;
+    }
+    .btn-disabled {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: not-allowed;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .status-active {
+      background-color: #28a745;
+      color: white;
+    }
+    .status-inactive {
+      background-color: #ffc107;
+      color: #000;
+    }
+    .status-moved_out {
+      background-color: #6c757d;
+      color: white;
+    }
+    .status-pending {
+      background-color: #17a2b8;
+      color: white;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .alert {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      display: none;
+    }
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .alert-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    .role-resident {
+      background-color: #17a2b8;
+      color: white;
+    }
+    .role-committee {
+      background-color: #007bff;
+      color: white;
+    }
+    .role-admin {
+      background-color: #dc3545;
+      color: white;
+    }
+    .role-deputy_admin {
+      background-color: #fd7e14;
+      color: white;
+    }
+    .role-accounting {
+      background-color: #28a745;
+      color: white;
+    }
+    .role-executive {
+      background-color: #6f42c1;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>จัดการผู้ใช้ & สิทธิ์</h2>
+      <div id="alert"></div>
+      <div id="list"></div>
+    </div>
+  </main>
+
+  <!-- Modal สำหรับย้ายออก -->
+  <div id="moveOutModal" class="modal">
+    <div class="modal-content">
+      <h3>ย้ายออกจากบ้านพัก</h3>
+      <form id="moveOutForm">
+        <input type="hidden" id="moveOutUserId">
+        <div class="form-group">
+          <label>ชื่อ-นามสกุล</label>
+          <input type="text" id="moveOutFullName" readonly>
+        </div>
+        <div class="form-group">
+          <label>อีเมล</label>
+          <input type="email" id="moveOutEmail" readonly>
+        </div>
+        <div class="form-group">
+          <label>หน่วยปัจจุบัน</label>
+          <input type="text" id="moveOutUnitId" readonly>
+        </div>
+        <div class="form-group">
+          <label>เหตุผลในการย้ายออก <span style="color: red;">*</span></label>
+          <textarea id="moveOutReason" required placeholder="กรุณาระบุเหตุผลในการย้ายออก..."></textarea>
+        </div>
+        <div style="background-color: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+          <strong>หมายเหตุ:</strong> การย้ายออกจะทำให้:
+          <ul style="margin: 5px 0; padding-left: 20px;">
+            <li>เปลี่ยนสถานะผู้ใช้เป็น "ย้ายออก"</li>
+            <li>ปล่อยหน่วยให้ว่าง (vacant)</li>
+            <li>ข้อมูลทั้งหมดจะยังคงเก็บไว้ย้อนหลัง</li>
+          </ul>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn" onclick="closeMoveOutModal()">ยกเลิก</button>
+          <button type="submit" class="btn-move-out">ยืนยันย้ายออก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('admin/users');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { 
+      e.preventDefault(); 
+      API.run('logout', { sessionId: Auth.getSessionId() }, function () { 
+        Auth.clear(); 
+        location.href = '../login.html'; 
+      }); 
+    });
+
+    var users = [];
+
+    // ฟังก์ชันแปลง role เป็นภาษาไทย
+    function getRoleName(role) {
+      var roleNames = {
+        'resident': 'ผู้พักอาศัย',
+        'committee': 'คณะกรรมการ',
+        'accounting': 'งานบัญชี',
+        'admin': 'ผู้ดูแลระบบ',
+        'deputy_admin': 'รองผู้ดูแลระบบ',
+        'executive': 'ผู้บริหาร',
+        'applicant': 'ผู้สมัคร'
+      };
+      return roleNames[role] || role;
+    }
+
+    // ฟังก์ชันแปลง status เป็นภาษาไทย
+    function getStatusName(status) {
+      var statusNames = {
+        'active': 'ใช้งาน',
+        'inactive': 'ไม่ใช้งาน',
+        'moved_out': 'ย้ายออก',
+        'pending': 'รอการอนุมัติ',
+        'suspended': 'ระงับการใช้งาน'
+      };
+      return statusNames[status] || status;
+    }
+
+    // ฟังก์ชันแปลง status เป็น badge class
+    function getStatusBadgeClass(status) {
+      if (status === 'active') return 'status-active';
+      if (status === 'moved_out') return 'status-moved_out';
+      if (status === 'inactive') return 'status-inactive';
+      if (status === 'pending') return 'status-pending';
+      return 'status-inactive';
+    }
+
+    // ฟังก์ชันแปลง role เป็น badge class
+    function getRoleBadgeClass(role) {
+      return 'role-' + role;
+    }
+
+    // โหลดรายการผู้ใช้
+    function loadUsers() {
+      API.run('listUsers', { sessionId: Auth.getSessionId() }, function (res) {
+        var el = document.getElementById('list');
+        if (!res.success || !res.users || !res.users.length) { 
+          el.innerHTML = '<p class="text-muted">ยังไม่มีผู้ใช้หรือไม่มีสิทธิ์</p>'; 
+          return; 
+        }
+        
+        users = res.users;
+        var html = '';
+        
+        // เรียงลำดับ: active ก่อน, moved_out ท้ายสุด
+        res.users.sort(function(a, b) {
+          if (a.status === 'moved_out' && b.status !== 'moved_out') return 1;
+          if (a.status !== 'moved_out' && b.status === 'moved_out') return -1;
+          return (a.fullName || '').localeCompare(b.fullName || '');
+        });
+        
+        res.users.forEach(function (u) {
+          var statusClass = u.status === 'moved_out' ? 'moved_out' : 
+                          u.status === 'active' ? 'active' : 'inactive';
+          var statusBadge = '<span class="status-badge ' + getStatusBadgeClass(u.status) + '">' + 
+                           getStatusName(u.status) + '</span>';
+          var roleBadge = '<span class="role-badge ' + getRoleBadgeClass(u.role) + '">' + 
+                         getRoleName(u.role) + '</span>';
+          
+          html += '<div class="user-card ' + statusClass + '">';
+          html += '<div class="user-header">';
+          html += '<h3>' + escapeHtml(u.fullName || u.email) + roleBadge + '</h3>';
+          html += statusBadge;
+          html += '</div>';
+          html += '<div class="user-info">';
+          html += '<div class="user-info-item"><strong>อีเมล:</strong> ' + escapeHtml(u.email) + '</div>';
+          html += '<div class="user-info-item"><strong>บทบาท:</strong> ' + getRoleName(u.role) + '</div>';
+          if (u.phone) {
+            html += '<div class="user-info-item"><strong>เบอร์โทรศัพท์:</strong> ' + escapeHtml(u.phone) + '</div>';
+          }
+          html += '<div class="user-info-item"><strong>หน่วย:</strong> ' + (u.unitId ? escapeHtml(u.unitId) : '-') + '</div>';
+          if (u.previousUnitId && u.status === 'moved_out') {
+            html += '<div class="user-info-item"><strong>หน่วยเดิม:</strong> ' + escapeHtml(u.previousUnitId) + '</div>';
+          }
+          if (u.movedOutAt) {
+            var movedOutDate = new Date(u.movedOutAt);
+            html += '<div class="user-info-item"><strong>วันที่ย้ายออก:</strong> ' + 
+                   movedOutDate.toLocaleDateString('th-TH') + '</div>';
+          }
+          html += '</div>';
+          html += '<div class="user-actions">';
+          
+          // แสดงปุ่มย้ายออกเฉพาะผู้ใช้ที่ยังไม่ได้ย้ายออก และไม่ใช่ตัวเอง และไม่ใช่ admin
+          if (u.status !== 'moved_out' && u.userId !== Auth.getUserId() && u.role !== 'admin') {
+            html += '<button class="btn-move-out" onclick="openMoveOutModal(\'' + escapeHtml(u.userId) + '\')">ย้ายออก</button>';
+          } else if (u.status === 'moved_out') {
+            html += '<button class="btn-disabled" disabled>ย้ายออกแล้ว</button>';
+          } else if (u.userId === currentUserId) {
+            html += '<button class="btn-disabled" disabled>ไม่สามารถย้ายออกตัวเองได้</button>';
+          } else if (u.role === 'admin') {
+            html += '<button class="btn-disabled" disabled>ไม่สามารถย้ายออกผู้ดูแลระบบได้</button>';
+          }
+          
+          html += '</div>';
+          html += '</div>';
+        });
+        el.innerHTML = html;
+      });
+    }
+
+    // เปิด Modal ย้ายออก
+    function openMoveOutModal(userId) {
+      var user = users.find(function(u) { return u.userId === userId; });
+      if (!user) return;
+      
+      document.getElementById('moveOutUserId').value = userId;
+      document.getElementById('moveOutFullName').value = user.fullName || '';
+      document.getElementById('moveOutEmail').value = user.email || '';
+      document.getElementById('moveOutUnitId').value = user.unitId || '-';
+      document.getElementById('moveOutReason').value = '';
+      
+      document.getElementById('moveOutModal').style.display = 'block';
+    }
+
+    // ปิด Modal ย้ายออก
+    function closeMoveOutModal() {
+      document.getElementById('moveOutModal').style.display = 'none';
+    }
+
+    // ส่งฟอร์มย้ายออก
+    document.getElementById('moveOutForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var userId = document.getElementById('moveOutUserId').value;
+      var reason = document.getElementById('moveOutReason').value;
+      
+      if (!reason.trim()) {
+        alert('กรุณาระบุเหตุผลในการย้ายออก');
+        return;
+      }
+      
+      if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการย้ายออกผู้ใช้รายนี้? ข้อมูลจะยังคงเก็บไว้ย้อนหลัง')) {
+        return;
+      }
+      
+      API.run('moveOutUser', {
+        sessionId: Auth.getSessionId(),
+        targetUserId: userId,
+        reason: reason
+      }, function(res) {
+        var alertEl = document.getElementById('alert');
+        if (res.success) {
+          alertEl.className = 'alert alert-success';
+          alertEl.textContent = res.message || 'ย้ายออกเรียบร้อย (ข้อมูลยังเก็บไว้ย้อนหลัง)';
+          closeMoveOutModal();
+          loadUsers();
+        } else {
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'เกิดข้อผิดพลาด';
+        }
+        alertEl.style.display = 'block';
+        setTimeout(function() {
+          alertEl.style.display = 'none';
+        }, 5000);
+      });
+    });
+
+    // ปิด Modal เมื่อคลิกนอก Modal
+    window.onclick = function(event) {
+      var moveOutModal = document.getElementById('moveOutModal');
+      if (event.target === moveOutModal) {
+        closeMoveOutModal();
+      }
+    };
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadUsers();
+  </script>
+</body>
+</html>

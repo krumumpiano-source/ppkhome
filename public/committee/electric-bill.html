@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บันทึกค่าไฟ - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>บันทึกค่าไฟ</h2>
+      <p class="text-muted">กรอกรายบ้าน/แฟลต · ระบบปัดขึ้นอัตโนมัติ</p>
+      <div id="alert" class="alert hide"></div>
+      <form id="form">
+        <div class="form-group"><label>ยอดการไฟฟ้าเรียกเก็บจริง (บาท)</label><input type="number" id="totalBill" step="0.01"></div>
+        <div class="form-group"><label>ค่า Lost บ้านพัก</label><input type="number" id="lostHouse" step="0.01" value="0"></div>
+        <div class="form-group"><label>ค่า Lost แฟลต</label><input type="number" id="lostFlat" step="0.01" value="0"></div>
+        <p class="text-muted">รายหน่วย: กรอกในรูปแบบ JSON array เช่น [{"unitId":"1","amount":500},{"unitId":"F1","amount":300}]</p>
+        <div class="form-group"><label>รายการค่าไฟรายหน่วย (JSON)</label><textarea id="readings" rows="4" placeholder='[{"unitId":"1","amount":500}]'></textarea></div>
+        <button type="submit" class="btn">บันทึก</button>
+      </form>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'committee' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('committee/electric');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+    var roundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var readings = [];
+      try { readings = JSON.parse(document.getElementById('readings').value || '[]'); } catch (err) { readings = []; }
+      API.run('submitElectricReadings', {
+        sessionId: Auth.getSessionId(),
+        roundId: roundId,
+        readings: JSON.stringify(readings),
+        totalBill: document.getElementById('totalBill').value,
+        lostHouse: document.getElementById('lostHouse').value,
+        lostFlat: document.getElementById('lostFlat').value
+      }, function (res) {
+        var alertEl = document.getElementById('alert');
+        alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
+        alertEl.textContent = (res.warning || res.message);
+        alertEl.classList.remove('hide');
+      });
+    });
+  </script>
+</body>
+</html>

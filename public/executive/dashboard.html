@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>แดชบอร์ดผู้บริหาร - ระบบบ้านพักครู</title>
+
+  <!-- Tailwind (Offline-first) -->
+  <link rel="stylesheet" href="../../assets/css/tailwind-inline.css" />
+  <script>
+    // Fallback to CDN if inline CSS not available
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+
+  <!-- ตั้งค่า API Base URL (แก้ไขเป็น Render URL ของคุณ) -->
+  <script>
+    window.API_BASE_URL = 'https://your-app.onrender.com';
+  </script>
+  <!-- Core JS (ห้ามเปลี่ยนลำดับ) -->
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/mock-data.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/role-guard.js"></script>
+  <script src="../../assets/js/layout.js"></script>
+  <script src="../../assets/js/ui-components.js"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">แดชบอร์ดผู้บริหาร (Read Only)</h1>
+      <p class="text-gray-600">ภาพรวมทั้งหมด · ไม่มีรายชื่อบุคคล</p>
+    </div>
+    
+    <!-- Dashboard Content -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <div id="dashboard" class="space-y-4">
+        <div class="flex items-center justify-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span class="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    if (!Auth.requireLogin('../../login.html')) return;
+    
+    // Check role - use Auth.getRole() only, no hardcode
+    const role = Auth.getRole();
+    const allowedRoles = ['executive', 'admin', 'deputy_admin'];
+    if (allowedRoles.indexOf(role) < 0) {
+      window.location.href = '../../index.html';
+      return;
+    }
+    
+    Layout.init('executive/dashboard');
+    
+    // Load executive dashboard data
+    API.run('getExecutiveDashboard', { sessionId: Auth.getSessionId() }, function(res) {
+      var el = document.getElementById('dashboard');
+      if (!res.success) {
+        el.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">' + escapeHtml(res.message) + '</div>';
+        return;
+      }
+      
+      // Render dashboard stats
+      var html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+      
+      html += '<div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">' +
+        '<p class="text-sm text-gray-600 mb-1">จำนวนหน่วยทั้งหมด</p>' +
+        '<p class="text-2xl font-bold text-gray-900">' + (res.totalUnits || 0) + '</p>' +
+        '</div>';
+      
+      html += '<div class="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">' +
+        '<p class="text-sm text-gray-600 mb-1">มีผู้พัก</p>' +
+        '<p class="text-2xl font-bold text-gray-900">' + (res.occupied || 0) + '</p>' +
+        '<p class="text-xs text-gray-500 mt-1">ว่าง: ' + (res.vacant || 0) + '</p>' +
+        '</div>';
+      
+      html += '<div class="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500">' +
+        '<p class="text-sm text-gray-600 mb-1">อัตราการชำระรอบปัจจุบัน</p>' +
+        '<p class="text-2xl font-bold text-gray-900">' + (res.paymentRate != null ? res.paymentRate + '%' : '-') + '</p>' +
+        '</div>';
+      
+      html += '<div class="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-500">' +
+        '<p class="text-sm text-gray-600 mb-1">ค้างชำระ</p>' +
+        '<p class="text-2xl font-bold text-gray-900">' + (res.overdueCount || 0) + '</p>' +
+        '</div>';
+      
+      html += '<div class="bg-indigo-50 rounded-lg p-4 border-l-4 border-indigo-500">' +
+        '<p class="text-sm text-gray-600 mb-1">คำร้องทั้งหมด</p>' +
+        '<p class="text-2xl font-bold text-gray-900">' + (res.applicationsTotal || 0) + '</p>' +
+        '<p class="text-xs text-gray-500 mt-1">อยู่ในคิว: ' + (res.applicationsInQueue || 0) + '</p>' +
+        '</div>';
+      
+      html += '</div>';
+      
+      el.innerHTML = html;
+    });
+  </script>
+</body>
+</html>

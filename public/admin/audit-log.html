@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Log - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>บันทึกการใช้งาน (Audit Log)</h2>
+      <p class="text-muted">ใคร ทำอะไร เมื่อไหร่ · อ่านอย่างเดียว</p>
+      <div id="list"></div>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('admin/audit');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+    API.run('getAuditLog', { sessionId: Auth.getSessionId(), options: '{}' }, function (res) {
+      var el = document.getElementById('list');
+      if (!res.success || !res.rows || !res.rows.length) { el.innerHTML = '<p class="text-muted">ยังไม่มี Log</p>'; return; }
+      var t = '<table><tr><th>เมื่อ</th><th>ผู้ใช้</th><th>การกระทำ</th><th>รายละเอียด</th></tr>';
+      res.rows.forEach(function (r) { t += '<tr><td>' + formatDate(r.when) + '</td><td>' + escapeHtml(r.userId) + '</td><td>' + escapeHtml(r.action) + '</td><td>' + escapeHtml(r.detail) + '</td></tr>'; });
+      t += '</table>';
+      el.innerHTML = t;
+    });
+  </script>
+</body>
+</html>

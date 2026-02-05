@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทบาท - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>แต่งตั้ง / ถอดบทบาท</h2>
+      <p class="text-muted">จัดการจากเมนูจัดการผู้ใช้</p>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('admin/roles');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+  </script>
+</body>
+</html>

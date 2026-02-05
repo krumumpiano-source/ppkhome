@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตรวจสอบยอดเงิน - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>ตรวจสอบยอดเงิน (เทียบแอปธนาคาร)</h2>
+      <p class="text-muted">กรอกยอดจากแอปธนาคาร เทียบกับระบบ บันทึกหมายเหตุ (ไม่แก้ยอดระบบ)</p>
+      <div id="alert" class="alert hide"></div>
+      <form id="form">
+        <div class="form-group"><label>ยอดเงินคงเหลือตามแอปธนาคาร (บาท)</label><input type="number" id="bankBalance" step="0.01" required></div>
+        <div class="form-group"><label>หมายเหตุ (กรณีไม่ตรง)</label><input type="text" id="note"></div>
+        <button type="submit" class="btn">เทียบยอด</button>
+      </form>
+      <div id="result" class="hide"></div>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'accounting' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('accounting/bank');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+    var roundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      API.run('verifyBankBalance', {
+        sessionId: Auth.getSessionId(),
+        roundId: roundId,
+        bankBalance: document.getElementById('bankBalance').value,
+        note: document.getElementById('note').value
+      }, function (res) {
+        var alertEl = document.getElementById('alert');
+        var resultEl = document.getElementById('result');
+        resultEl.classList.remove('hide');
+        if (!res.success) { alertEl.className = 'alert alert-error'; alertEl.textContent = res.message; alertEl.classList.remove('hide'); return; }
+        resultEl.innerHTML = '<p>ยอดตามระบบ: ' + formatNumber(res.systemBalance) + ' บาท</p><p>ยอดแอปธนาคาร: ' + formatNumber(res.bankBalance) + ' บาท</p><p><strong>ส่วนต่าง: ' + formatNumber(res.difference) + '</strong></p><p>' + (res.match ? '✔ ตรงกัน' : '⚠ ไม่ตรงกัน กรุณาบันทึกหมายเหตุ') + '</p>';
+      });
+    });
+  </script>
+</body>
+</html>

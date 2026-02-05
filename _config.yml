@@ -1,0 +1,26 @@
+# GitHub Pages Configuration (Jekyll)
+# สำหรับ GitHub Pages ที่ใช้ Jekyll
+# ถ้าใช้ static HTML ไม่จำเป็นต้องใช้ไฟล์นี้
+
+title: ระบบบริหารจัดการบ้านพักครู
+description: Teacher Housing Management System
+theme: minima
+
+# Exclude files from Jekyll processing
+exclude:
+  - backend/
+  - docs/
+  - gas/
+  - node_modules/
+  - .git/
+  - .github/
+  - README.md
+  - DEPLOYMENT.md
+  - render.yaml
+  - .gitignore
+
+# Include only necessary files
+include:
+  - assets/
+  - public/
+  - index.html

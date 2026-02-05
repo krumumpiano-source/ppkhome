@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ข้อมูลส่วนตัว - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>ข้อมูลส่วนตัว</h2>
+      <div id="alert" class="alert hide"></div>
+      <div id="profile"></div>
+      <form id="form" class="hide">
+        <div class="form-group"><label>ชื่อ–นามสกุล</label><input type="text" id="fullName"></div>
+        <div class="form-group"><label>อีเมล</label><input type="email" id="email"></div>
+        <div class="form-group"><label>เบอร์โทร</label><input type="text" id="phone"></div>
+        <div class="form-group"><label>สมาชิกที่อาศัยร่วม</label><textarea id="householdMembers" rows="2"></textarea></div>
+        <button type="submit" class="btn">บันทึก</button>
+      </form>
+      <hr>
+      <h3>เปลี่ยนรหัสผ่าน</h3>
+      <form id="formPw">
+        <div class="form-group"><label>รหัสผ่านเดิม</label><input type="password" id="oldPassword" required></div>
+        <div class="form-group"><label>รหัสผ่านใหม่</label><input type="password" id="newPassword" required minlength="8"></div>
+        <button type="submit" class="btn">เปลี่ยนรหัสผ่าน</button>
+      </form>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('resident/profile');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+    API.run('getMyProfile', { sessionId: Auth.getSessionId() }, function (res) {
+      if (!res.success) return;
+      var p = res.profile;
+      document.getElementById('profile').innerHTML = '<p>หน่วย: ' + escapeHtml(p.unitId || '-') + ' · บทบาท: ' + escapeHtml(p.role || '') + '</p>';
+      document.getElementById('fullName').value = p.fullName || '';
+      document.getElementById('email').value = p.email || '';
+      document.getElementById('phone').value = p.phone || '';
+      document.getElementById('householdMembers').value = p.householdMembers || '';
+      document.getElementById('form').classList.remove('hide');
+    });
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      API.run('updateMyProfile', {
+        sessionId: Auth.getSessionId(),
+        payload: JSON.stringify({
+          fullName: document.getElementById('fullName').value,
+          email: document.getElementById('email').value,
+          phone: document.getElementById('phone').value,
+          householdMembers: document.getElementById('householdMembers').value
+        })
+      }, function (res) {
+        var alertEl = document.getElementById('alert');
+        alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
+        alertEl.textContent = res.message;
+        alertEl.classList.remove('hide');
+      });
+    });
+    document.getElementById('formPw').addEventListener('submit', function (e) {
+      e.preventDefault();
+      API.run('changePassword', {
+        sessionId: Auth.getSessionId(),
+        oldPassword: document.getElementById('oldPassword').value,
+        newPassword: document.getElementById('newPassword').value
+      }, function (res) {
+        var alertEl = document.getElementById('alert');
+        alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
+        alertEl.textContent = res.message;
+        alertEl.classList.remove('hide');
+      });
+    });
+  </script>
+</body>
+</html>

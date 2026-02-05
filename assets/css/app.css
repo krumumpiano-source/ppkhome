@@ -1,0 +1,112 @@
+/* ระบบบริหารจัดการบ้านพักครู - สไตล์หลัก (แบบราชการ อ่านง่าย) */
+:root {
+  --bg: #f5f6f8;
+  --card: #ffffff;
+  --border: #d1d5db;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --accent: #1e40af;
+  --accent-hover: #1e3a8a;
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Sarabun', 'Thonburi', 'Tahoma', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  font-size: 16px;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+}
+header h1 { margin: 0; font-size: 1.25rem; color: var(--accent); }
+nav {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+nav a {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+nav a:hover { background: #eff6ff; }
+nav a.active { font-weight: 600; background: #dbeafe; }
+.main { padding: 1rem; min-height: 60vh; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.card h2 { margin-top: 0; font-size: 1.1rem; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f9fafb; font-weight: 600; color: var(--muted); font-size: 0.85rem; }
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+label { display: block; margin-bottom: 0.25rem; color: var(--muted); font-size: 0.9rem; }
+.form-group { margin-bottom: 1rem; }
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  background: var(--accent);
+  color: #fff;
+}
+.btn:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--muted); }
+.btn-secondary:hover { background: #4b5563; }
+.alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+.alert-success { background: #d1fae5; color: #065f46; }
+.alert-error { background: #fee2e2; color: #991b1b; }
+.alert-warning { background: #fef3c7; color: #92400e; }
+.hide { display: none !important; }
+.text-muted { color: var(--muted); font-size: 0.9rem; }
+.text-right { text-align: right; }
+
+/* สถานะการชำระ (Resident) — เป็นกลาง ไม่กดดัน ไม่ประจาน */
+.payment-status-disclaimer {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  border-left: 4px solid var(--accent);
+  font-size: 0.9rem;
+}
+.payment-status-list { list-style: none; padding: 0; margin: 0; }
+.payment-status-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.payment-status-item:last-child { border-bottom: none; }
+.payment-status-round { font-weight: 500; }
+.payment-status-label { margin-left: 0.25rem; }
+.payment-status-item .small { font-size: 0.85rem; }
+.payment-status-table { margin-top: 0.5rem; }
+.section-sub { font-size: 1rem; margin: 1.5rem 0 0.75rem; color: var(--muted); }

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สถานะคิว - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav><a href="../index.html">เกี่ยวกับ</a><a href="apply.html">ยื่นคำร้อง</a></nav>
+  <main class="main container">
+    <div class="card" style="max-width: 480px;">
+      <h2>ติดตามสถานะคำร้องของตนเอง</h2>
+      <div class="form-group">
+        <label>เลขที่คำร้อง (Application ID)</label>
+        <input type="text" id="applicationId" placeholder="app_xxxxx">
+      </div>
+      <button type="button" class="btn" id="btnCheck">ตรวจสอบสถานะ</button>
+      <div id="result" class="card hide" style="margin-top:1rem;"></div>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script>
+    try { var last = sessionStorage.getItem('last_application_id'); if (last) document.getElementById('applicationId').value = last; } catch (x) {}
+    document.getElementById('btnCheck').addEventListener('click', function () {
+      var id = document.getElementById('applicationId').value.trim();
+      if (!id) { document.getElementById('result').innerHTML = '<p class="alert alert-warning">กรุณากรอกเลขที่คำร้อง</p>'; document.getElementById('result').classList.remove('hide'); return; }
+      API.run('getMyQueueStatus', { applicationId: id }, function (res) {
+        var el = document.getElementById('result');
+        el.classList.remove('hide');
+        if (!res.success) { el.innerHTML = '<p class="alert alert-error">' + escapeHtml(res.message) + '</p>'; return; }
+        if (res.status === 'not_found') { el.innerHTML = '<p class="text-muted">ไม่พบคำร้องนี้</p>'; return; }
+        el.innerHTML = '<p><strong>ลำดับคิว:</strong> ' + (res.position != null ? res.position : '-') + '</p>' +
+          '<p><strong>จำนวนคนก่อนหน้า:</strong> ' + (res.ahead != null ? res.ahead : '-') + '</p>' +
+          '<p><strong>สถานะ:</strong> ' + escapeHtml(res.status) + '</p>';
+      });
+    });
+  </script>
+</body>
+</html>

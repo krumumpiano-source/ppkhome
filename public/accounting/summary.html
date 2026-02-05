@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สรุปรอบการเงิน - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>สรุปรอบการเงิน (หน้าเดียวรู้เรื่อง)</h2>
+      <div id="alert" class="alert hide"></div>
+      <div id="summary"></div>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'accounting' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('accounting/summary');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+    var roundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);
+    API.run('getRoundSummary', { sessionId: Auth.getSessionId(), roundId: roundId }, function (res) {
+      var el = document.getElementById('summary');
+      if (!res.success) { document.getElementById('alert').className = 'alert alert-error'; document.getElementById('alert').textContent = res.message; document.getElementById('alert').classList.remove('hide'); return; }
+      el.innerHTML = '<p><strong>เงินรับฝาก (ค่าน้ำ):</strong> ' + formatNumber(res.depositWater) + ' บาท</p>' +
+        '<p><strong>เงินรับฝาก (ค่าไฟ):</strong> ' + formatNumber(res.depositElectric) + ' บาท</p>' +
+        '<p><strong>รวมรับฝาก:</strong> ' + formatNumber(res.depositTotal) + ' บาท</p>' +
+        '<p><strong>ค่าส่วนกลางรอบ:</strong> ' + formatNumber(res.commonFeeTotal) + ' บาท</p>';
+    });
+  </script>
+</body>
+</html>

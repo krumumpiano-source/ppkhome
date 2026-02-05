@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: teacher-housing-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: PORT
+        sync: false
+      - key: GOOGLE_CREDENTIALS
+        sync: false
+      - key: SPREADSHEET_ID
+        value: 1X_I7Yj1xm8IOszkD37MvVG8WUGbBrxdK6Os9nyc3UmY
+      - key: DRIVE_FOLDER_PAYMENT_SLIPS
+        value: 1RK8PFdrFFGw_6gsmUxDrUqtCWZYuhUJF
+      - key: DRIVE_FOLDER_ABOUT_IMAGES
+        value: 1wVbFJ90GOoxM0FHe8ks8ddpRdw3OCrwQ
+      - key: DRIVE_FOLDER_EXPORTS
+        value: 1JCt9ooyxkGvvKyhG-HuEysqf0ghKbgsg

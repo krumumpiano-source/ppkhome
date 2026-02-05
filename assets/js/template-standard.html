@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{PAGE_TITLE}}</title>
+
+  <!-- Tailwind (Offline-first) -->
+  <link rel="stylesheet" href="../assets/css/tailwind-inline.css" />
+  <script>
+    // Fallback to CDN if inline CSS not available
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+
+  <!-- ตั้งค่า API Base URL (แก้ไขเป็น Render URL ของคุณ) -->
+  <script>
+    window.API_BASE_URL = 'https://your-app.onrender.com';
+  </script>
+  <!-- Core JS (ห้ามเปลี่ยนลำดับ) -->
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="../assets/js/ui-components.js"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- PAGE CONTENT -->
+  </main>
+
+  <script>
+    if (!Auth.requireLogin()) return;
+    Layout.init('{{PAGE_PATH}}');
+  </script>
+</body>
+</html>

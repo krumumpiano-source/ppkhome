@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n-title="admin.settings">ตั้งค่าระบบ</title>
+  
+  <!-- Tailwind CSS - Use inline CSS for offline mode -->
+  <link rel="stylesheet" href="../../assets/css/tailwind-inline.css">
+  <script>
+    if (window.location.protocol === 'file:' || !navigator.onLine) {
+    } else {
+      var script = document.createElement('script');
+      script.src = 'https://cdn.tailwindcss.com';
+      script.onerror = function() {};
+      document.head.appendChild(script);
+    }
+  </script>
+  
+  <!-- Custom Styles -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Sarabun', 'Segoe UI', Tahoma, sans-serif; }
+  </style>
+  
+  <!-- Scripts -->
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/mock-data.js"></script>
+  <script src="../../assets/js/i18n-modern.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/role-guard.js"></script>
+  <script src="../../assets/js/layout.js"></script>
+  <script src="../../assets/js/ui-components.js"></script>
+</head>
+<body class="bg-gray-50">
+  <!-- Header -->
+  <div id="app-header"></div>
+  
+  <!-- Navigation -->
+  <div id="app-nav"></div>
+  
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2" data-i18n="admin.settings">ตั้งค่าระบบ</h1>
+      <p class="text-gray-600">จัดการการตั้งค่าระบบและการนำเข้า/ส่งออกข้อมูล</p>
+    </div>
+    
+    <!-- System Configuration -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">ตั้งค่าระบบ (System Configuration)</h2>
+      <p class="text-gray-600 mb-4">
+        ราคาน้ำต่อหน่วย · ค่าส่วนกลาง · ค่าอ่านมิเตอร์บ้านว่าง (9 บาท) · เปิด/ปิดการอนุมัติ · เก็บใน Sheet SysConfig
+      </p>
+      <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+        เปิดหน้าตั้งค่า
+      </button>
+    </div>
+    
+    <!-- Export Data -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">ส่งออกข้อมูลระบบ (Export Data)</h2>
+      <p class="text-gray-600 mb-4">
+        สร้างไฟล์ Spreadsheet ใหม่พร้อมข้อมูลทั้งหมด เพื่อใช้กรอก/แก้ไขข้อมูลนอกระบบ หรือสำรองข้อมูล
+      </p>
+      
+      <!-- Alert -->
+      <div id="export-alert" class="hidden mb-4"></div>
+      
+      <!-- Export Button -->
+      <button 
+        id="btn-export" 
+        class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span data-i18n="export">ส่งออกข้อมูลระบบ</span>
+      </button>
+      
+      <!-- Export Result -->
+      <div id="export-result" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <p class="text-green-800 font-medium mb-2">ส่งออกเรียบร้อย</p>
+        <a id="export-link" href="#" target="_blank" class="text-blue-600 hover:text-blue-700 underline inline-flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          เปิดไฟล์ Spreadsheet
+        </a>
+      </div>
+    </div>
+    
+    <!-- Import Data -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">นำเข้าข้อมูลจากไฟล์ (Import Data)</h2>
+      <p class="text-gray-600 mb-4">
+        นำเข้าข้อมูลจาก Spreadsheet ที่ส่งออกจากระบบ ระบบจะตรวจสอบโครงสร้างก่อนนำเข้า
+      </p>
+      
+      <!-- Alert -->
+      <div id="import-alert" class="hidden mb-4"></div>
+      
+      <!-- Import Form -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          ID ของ Spreadsheet ที่ต้องการนำเข้า
+        </label>
+        <input 
+          type="text" 
+          id="import-spreadsheet-id" 
+          placeholder="กรอก Spreadsheet ID (จาก URL)" 
+          class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+        <p class="text-sm text-gray-500 mt-1">
+          ตัวอย่าง: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
+        </p>
+      </div>
+      
+      <!-- Import Button -->
+      <button 
+        id="btn-import" 
+        class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <span data-i18n="import">นำเข้าข้อมูล</span>
+      </button>
+      
+      <!-- Import Result -->
+      <div id="import-result" class="hidden mt-4">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">รายงานการนำเข้า</h3>
+        <div id="import-log" class="bg-gray-50 border border-gray-200 rounded-lg p-4"></div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // Check auth and role
+    if (!Auth.isLoggedIn()) {
+      window.location.href = '../../login.html';
+    }
+    const role = Auth.getRole();
+    if (role !== 'admin' && role !== 'deputy_admin') {
+      window.location.href = '../../resident/dashboard.html';
+    }
+    
+    // Initialize layout
+    Layout.init('admin/settings');
+    
+    // Export handler
+    document.getElementById('btn-export').addEventListener('click', function() {
+      const btn = this;
+      const alertEl = document.getElementById('export-alert');
+      const resultEl = document.getElementById('export-result');
+      const linkEl = document.getElementById('export-link');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>กำลังส่งออก...';
+      alertEl.classList.add('hidden');
+      resultEl.classList.add('hidden');
+      
+      API.run('exportAllData', { sessionId: Auth.getSessionId() }, function(res) {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>ส่งออกข้อมูลระบบ</span>
+        `;
+        
+        if (res && res.success) {
+          alertEl.className = 'bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg';
+          alertEl.textContent = res.message || 'ส่งออกข้อมูลเรียบร้อย';
+          alertEl.classList.remove('hidden');
+          
+          if (res.spreadsheetUrl) {
+            linkEl.href = res.spreadsheetUrl;
+            linkEl.textContent = 'เปิดไฟล์: ' + (res.spreadsheetName || 'Export');
+            resultEl.classList.remove('hidden');
+          }
+          
+          UI.toast(I18N.t('messages.saveSuccess'), 'success');
+        } else {
+          alertEl.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg';
+          alertEl.textContent = (res && res.message) || 'เกิดข้อผิดพลาด';
+          alertEl.classList.remove('hidden');
+          UI.toast(res.message || I18N.t('messages.saveError'), 'error');
+        }
+      });
+    });
+    
+    // Import handler
+    document.getElementById('btn-import').addEventListener('click', function() {
+      const btn = this;
+      const alertEl = document.getElementById('import-alert');
+      const resultEl = document.getElementById('import-result');
+      const logEl = document.getElementById('import-log');
+      const ssId = document.getElementById('import-spreadsheet-id').value.trim();
+      
+      if (!ssId) {
+        alertEl.className = 'bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg';
+        alertEl.textContent = 'กรุณากรอก Spreadsheet ID';
+        alertEl.classList.remove('hidden');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>กำลังนำเข้า...';
+      alertEl.classList.add('hidden');
+      resultEl.classList.add('hidden');
+      
+      API.run('importData', { sessionId: Auth.getSessionId(), sourceSpreadsheetId: ssId }, function(res) {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <span>นำเข้าข้อมูล</span>
+        `;
+        
+        if (res && res.success) {
+          alertEl.className = 'bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg';
+          alertEl.textContent = res.message || 'นำเข้าข้อมูลเรียบร้อย';
+          alertEl.classList.remove('hidden');
+          
+          if (res.log && res.log.length > 0) {
+            logEl.innerHTML = '<ul class="list-disc list-inside space-y-1">' + 
+              res.log.map(function(l) { 
+                return '<li class="text-gray-700">' + escapeHtml(l) + '</li>'; 
+              }).join('') + '</ul>';
+            resultEl.classList.remove('hidden');
+          }
+          
+          UI.toast(I18N.t('messages.saveSuccess'), 'success');
+        } else {
+          alertEl.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg';
+          alertEl.textContent = (res && res.message) || 'เกิดข้อผิดพลาด';
+          
+          if (res && res.errors && res.errors.length > 0) {
+            alertEl.textContent += ' (' + res.errors.length + ' รายการ)';
+            logEl.innerHTML = '<p class="font-medium mb-2">รายการข้อผิดพลาด:</p><ul class="list-disc list-inside space-y-1">' + 
+              res.errors.map(function(e) { 
+                return '<li class="text-red-700">' + escapeHtml(e) + '</li>'; 
+              }).join('') + '</ul>';
+            resultEl.classList.remove('hidden');
+          }
+          
+          alertEl.classList.remove('hidden');
+          UI.toast(res.message || I18N.t('messages.saveError'), 'error');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

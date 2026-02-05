@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ยื่นคำร้องขอเข้าพัก - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav><a href="../index.html">เกี่ยวกับ</a><a href="queue-status.html">สถานะคิว</a></nav>
+  <main class="main container">
+    <div class="card" style="max-width: 480px;">
+      <h2>ยื่นคำร้องขอเข้าพัก</h2>
+      <div id="alert" class="alert hide"></div>
+      <form id="form">
+        <div class="form-group"><label>ชื่อ–นามสกุล</label><input type="text" id="fullName" required></div>
+        <div class="form-group"><label>อีเมล</label><input type="email" id="email" required></div>
+        <div class="form-group"><label>เบอร์โทร</label><input type="text" id="phone"></div>
+        <div class="form-group"><label>เหตุผล/ความประสงค์</label><textarea id="reason" rows="3"></textarea></div>
+        <button type="submit" class="btn">ยื่นคำร้อง</button>
+      </form>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script>
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var payload = {
+        fullName: document.getElementById('fullName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        reason: document.getElementById('reason').value.trim()
+      };
+      API.run('submitApplication', { payload: JSON.stringify(payload) }, function (res) {
+        var alertEl = document.getElementById('alert');
+        alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
+        alertEl.textContent = res.message;
+        alertEl.classList.remove('hide');
+        if (res.success && res.applicationId) {
+          alertEl.textContent += ' เลขที่คำร้อง: ' + res.applicationId + ' (เก็บไว้สำหรับตรวจสอบสถานะคิว)';
+          try { sessionStorage.setItem('last_application_id', res.applicationId); } catch (x) {}
+        }
+      });
+    });
+  </script>
+</body>
+</html>

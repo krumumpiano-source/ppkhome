@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายงานเชิงบริหาร - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>รายงานตามช่วงเวลา (Read Only)</h2>
+      <form id="form">
+        <div class="form-group"><label>จากวันที่</label><input type="date" id="fromDate"></div>
+        <div class="form-group"><label>ถึงวันที่</label><input type="date" id="toDate"></div>
+        <button type="submit" class="btn">ดึงรายงาน</button>
+      </form>
+      <div id="report"></div>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'executive' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../index.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('executive/reports');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+    var d = new Date();
+    document.getElementById('toDate').value = d.toISOString().slice(0, 10);
+    d.setMonth(d.getMonth() - 1);
+    document.getElementById('fromDate').value = d.toISOString().slice(0, 10);
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      API.run('getReportByPeriod', {
+        sessionId: Auth.getSessionId(),
+        fromDate: document.getElementById('fromDate').value,
+        toDate: document.getElementById('toDate').value
+      }, function (res) {
+        var el = document.getElementById('report');
+        if (!res.success || !res.report) { el.innerHTML = '<p class="text-muted">ไม่มีข้อมูล</p>'; return; }
+        var r = res.report;
+        el.innerHTML = '<p><strong>ช่วง:</strong> ' + r.from + ' ถึง ' + r.to + '</p><p><strong>จำนวนการชำระ:</strong> ' + (r.paymentCount || 0) + '</p><p><strong>ยอดรวม:</strong> ' + formatNumber(r.totalAmount) + ' บาท</p>';
+      });
+    });
+  </script>
+</body>
+</html>

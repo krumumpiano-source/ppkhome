@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>อนุมัติคำร้องขอเข้าพัก - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+  <style>
+    .application-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #fff;
+    }
+    .application-card.pending {
+      border-left: 4px solid #ffc107;
+    }
+    .application-card.approved {
+      border-left: 4px solid #28a745;
+    }
+    .application-card.rejected {
+      border-left: 4px solid #dc3545;
+    }
+    .application-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .application-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .application-info-item {
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+    .application-info-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #495057;
+    }
+    .application-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .btn-approve {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-approve:hover {
+      background-color: #218838;
+    }
+    .btn-reject {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-reject:hover {
+      background-color: #c82333;
+    }
+    .btn-disabled {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: not-allowed;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .status-pending {
+      background-color: #ffc107;
+      color: #000;
+    }
+    .status-approved {
+      background-color: #28a745;
+      color: white;
+    }
+    .status-rejected {
+      background-color: #dc3545;
+      color: white;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .alert {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .alert-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .alert-info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+  </style>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>อนุมัติคำร้องขอเข้าพัก</h2>
+      <div id="alert"></div>
+      <div id="list"></div>
+    </div>
+  </main>
+
+  <!-- Modal สำหรับอนุมัติ -->
+  <div id="approveModal" class="modal">
+    <div class="modal-content">
+      <h3>อนุมัติคำร้อง</h3>
+      <form id="approveForm">
+        <input type="hidden" id="approveApplicationId">
+        <div class="form-group">
+          <label>ชื่อ-นามสกุล</label>
+          <input type="text" id="approveFullName" readonly>
+        </div>
+        <div class="form-group">
+          <label>อีเมล</label>
+          <input type="email" id="approveEmail" readonly>
+        </div>
+        <div class="form-group">
+          <label>เบอร์โทรศัพท์</label>
+          <input type="text" id="approvePhone" readonly>
+        </div>
+        <div class="form-group">
+          <label>เหตุผลขอเข้าพัก</label>
+          <textarea id="approveReason" readonly></textarea>
+        </div>
+        <div class="form-group">
+          <label>หน่วยที่ต้องการจัดให้ <span style="color: red;">*</span></label>
+          <select id="approveUnitId" required>
+            <option value="">-- เลือกหน่วย --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>หมายเหตุ (ถ้ามี)</label>
+          <textarea id="approveNote" placeholder="หมายเหตุเพิ่มเติม..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn" onclick="closeApproveModal()">ยกเลิก</button>
+          <button type="submit" class="btn-approve">อนุมัติ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal สำหรับปฏิเสธ -->
+  <div id="rejectModal" class="modal">
+    <div class="modal-content">
+      <h3>ปฏิเสธคำร้อง</h3>
+      <form id="rejectForm">
+        <input type="hidden" id="rejectApplicationId">
+        <div class="form-group">
+          <label>ชื่อ-นามสกุล</label>
+          <input type="text" id="rejectFullName" readonly>
+        </div>
+        <div class="form-group">
+          <label>อีเมล</label>
+          <input type="email" id="rejectEmail" readonly>
+        </div>
+        <div class="form-group">
+          <label>เหตุผลในการปฏิเสธ <span style="color: red;">*</span></label>
+          <textarea id="rejectReason" required placeholder="กรุณาระบุเหตุผลในการปฏิเสธ..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn" onclick="closeRejectModal()">ยกเลิก</button>
+          <button type="submit" class="btn-reject">ปฏิเสธ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('admin/queue');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { 
+      e.preventDefault(); 
+      API.run('logout', { sessionId: Auth.getSessionId() }, function () { 
+        Auth.clear(); 
+        location.href = '../login.html'; 
+      }); 
+    });
+
+    var availableUnits = [];
+    var applications = [];
+
+    // โหลดรายการหน่วยที่ว่าง
+    function loadAvailableUnits() {
+      API.run('listUsers', { sessionId: Auth.getSessionId() }, function(res) {
+        if (res.success && res.users) {
+          // ดึง units ทั้งหมด
+          var allUnits = [];
+          for (var i = 1; i <= 17; i++) {
+            allUnits.push({ unitId: String(i), type: 'house' });
+          }
+          for (var i = 1; i <= 16; i++) {
+            allUnits.push({ unitId: 'F' + i, type: 'flat' });
+          }
+          
+          // กรองหน่วยที่ว่าง (ไม่มี user ใช้)
+          var occupiedUnits = {};
+          res.users.forEach(function(user) {
+            if (user.unitId && user.status === 'active') {
+              occupiedUnits[user.unitId] = true;
+            }
+          });
+          
+          availableUnits = allUnits.filter(function(unit) {
+            return !occupiedUnits[unit.unitId];
+          });
+          
+          // เพิ่มหน่วยที่ถูกใช้แล้วเพื่อให้เลือกได้ (กรณีต้องการเปลี่ยน)
+          allUnits.forEach(function(unit) {
+            if (occupiedUnits[unit.unitId]) {
+              availableUnits.push(unit);
+            }
+          });
+          
+          // เรียงลำดับ
+          availableUnits.sort(function(a, b) {
+            var aNum = parseInt(a.unitId.replace('F', '')) || 0;
+            var bNum = parseInt(b.unitId.replace('F', '')) || 0;
+            if (a.unitId.startsWith('F') && !b.unitId.startsWith('F')) return 1;
+            if (!a.unitId.startsWith('F') && b.unitId.startsWith('F')) return -1;
+            return aNum - bNum;
+          });
+        }
+      });
+    }
+
+    // โหลดรายการคำร้อง
+    function loadApplications() {
+      API.run('listApplicationsAndQueue', { sessionId: Auth.getSessionId() }, function (res) {
+        var el = document.getElementById('list');
+        if (!res.success || !res.items || !res.items.length) { 
+          el.innerHTML = '<p class="text-muted">ยังไม่มีคำร้อง</p>'; 
+          return; 
+        }
+        
+        applications = res.items;
+        var html = '';
+        res.items.forEach(function (item, idx) {
+          var statusClass = 'pending';
+          var statusText = 'รอการพิจารณา';
+          var statusBadge = '<span class="status-badge status-pending">รอการพิจารณา</span>';
+          
+          if (item.status === 'approved' || item.status === 'processed') {
+            statusClass = 'approved';
+            statusText = 'อนุมัติแล้ว';
+            statusBadge = '<span class="status-badge status-approved">อนุมัติแล้ว</span>';
+          } else if (item.status === 'rejected') {
+            statusClass = 'rejected';
+            statusText = 'ปฏิเสธแล้ว';
+            statusBadge = '<span class="status-badge status-rejected">ปฏิเสธแล้ว</span>';
+          }
+          
+          html += '<div class="application-card ' + statusClass + '">';
+          html += '<div class="application-header">';
+          html += '<h3>คำร้อง #' + (idx + 1) + ' - ' + escapeHtml(item.fullName) + '</h3>';
+          html += statusBadge;
+          html += '</div>';
+          html += '<div class="application-info">';
+          html += '<div class="application-info-item"><strong>อีเมล:</strong> ' + escapeHtml(item.email) + '</div>';
+          html += '<div class="application-info-item"><strong>ลำดับในคิว:</strong> ' + (item.order !== null ? (item.order + 1) : '-') + '</div>';
+          if (item.phone) {
+            html += '<div class="application-info-item"><strong>เบอร์โทรศัพท์:</strong> ' + escapeHtml(item.phone) + '</div>';
+          }
+          if (item.reason) {
+            html += '<div class="application-info-item"><strong>เหตุผล:</strong> ' + escapeHtml(item.reason) + '</div>';
+          }
+          html += '</div>';
+          html += '<div class="application-actions">';
+          
+          if (statusClass === 'pending') {
+            html += '<button class="btn-approve" onclick="openApproveModal(\'' + escapeHtml(item.applicationId) + '\')">อนุมัติ</button>';
+            html += '<button class="btn-reject" onclick="openRejectModal(\'' + escapeHtml(item.applicationId) + '\')">ปฏิเสธ</button>';
+          } else {
+            html += '<button class="btn-disabled" disabled>' + statusText + '</button>';
+          }
+          
+          html += '</div>';
+          html += '</div>';
+        });
+        el.innerHTML = html;
+      });
+    }
+
+    // เปิด Modal อนุมัติ
+    function openApproveModal(applicationId) {
+      var app = applications.find(function(a) { return a.applicationId === applicationId; });
+      if (!app) return;
+      
+      document.getElementById('approveApplicationId').value = applicationId;
+      document.getElementById('approveFullName').value = app.fullName || '';
+      document.getElementById('approveEmail').value = app.email || '';
+      document.getElementById('approvePhone').value = app.phone || '';
+      document.getElementById('approveReason').value = app.reason || '';
+      document.getElementById('approveNote').value = '';
+      
+      // เติมรายการหน่วย
+      var unitSelect = document.getElementById('approveUnitId');
+      unitSelect.innerHTML = '<option value="">-- เลือกหน่วย --</option>';
+      availableUnits.forEach(function(unit) {
+        var option = document.createElement('option');
+        option.value = unit.unitId;
+        option.textContent = unit.unitId + ' (' + (unit.type === 'house' ? 'บ้าน' : 'แฟลต') + ')';
+        unitSelect.appendChild(option);
+      });
+      
+      document.getElementById('approveModal').style.display = 'block';
+    }
+
+    // ปิด Modal อนุมัติ
+    function closeApproveModal() {
+      document.getElementById('approveModal').style.display = 'none';
+    }
+
+    // เปิด Modal ปฏิเสธ
+    function openRejectModal(applicationId) {
+      var app = applications.find(function(a) { return a.applicationId === applicationId; });
+      if (!app) return;
+      
+      document.getElementById('rejectApplicationId').value = applicationId;
+      document.getElementById('rejectFullName').value = app.fullName || '';
+      document.getElementById('rejectEmail').value = app.email || '';
+      document.getElementById('rejectReason').value = '';
+      
+      document.getElementById('rejectModal').style.display = 'block';
+    }
+
+    // ปิด Modal ปฏิเสธ
+    function closeRejectModal() {
+      document.getElementById('rejectModal').style.display = 'none';
+    }
+
+    // ส่งฟอร์มอนุมัติ
+    document.getElementById('approveForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var applicationId = document.getElementById('approveApplicationId').value;
+      var unitId = document.getElementById('approveUnitId').value;
+      var note = document.getElementById('approveNote').value;
+      
+      if (!unitId) {
+        alert('กรุณาเลือกหน่วยที่ต้องการจัดให้');
+        return;
+      }
+      
+      API.run('approveApplication', {
+        sessionId: Auth.getSessionId(),
+        applicationId: applicationId,
+        unitId: unitId,
+        note: note
+      }, function(res) {
+        var alertEl = document.getElementById('alert');
+        if (res.success) {
+          alertEl.className = 'alert alert-success';
+          alertEl.textContent = res.message || 'อนุมัติคำร้องเรียบร้อย';
+          closeApproveModal();
+          loadApplications();
+        } else {
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'เกิดข้อผิดพลาด';
+        }
+        alertEl.style.display = 'block';
+        setTimeout(function() {
+          alertEl.style.display = 'none';
+        }, 5000);
+      });
+    });
+
+    // ส่งฟอร์มปฏิเสธ
+    document.getElementById('rejectForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var applicationId = document.getElementById('rejectApplicationId').value;
+      var reason = document.getElementById('rejectReason').value;
+      
+      if (!reason.trim()) {
+        alert('กรุณาระบุเหตุผลในการปฏิเสธ');
+        return;
+      }
+      
+      API.run('rejectApplication', {
+        sessionId: Auth.getSessionId(),
+        applicationId: applicationId,
+        reason: reason
+      }, function(res) {
+        var alertEl = document.getElementById('alert');
+        if (res.success) {
+          alertEl.className = 'alert alert-success';
+          alertEl.textContent = res.message || 'ปฏิเสธคำร้องเรียบร้อย';
+          closeRejectModal();
+          loadApplications();
+        } else {
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'เกิดข้อผิดพลาด';
+        }
+        alertEl.style.display = 'block';
+        setTimeout(function() {
+          alertEl.style.display = 'none';
+        }, 5000);
+      });
+    });
+
+    // ปิด Modal เมื่อคลิกนอก Modal
+    window.onclick = function(event) {
+      var approveModal = document.getElementById('approveModal');
+      var rejectModal = document.getElementById('rejectModal');
+      if (event.target === approveModal) {
+        closeApproveModal();
+      }
+      if (event.target === rejectModal) {
+        closeRejectModal();
+      }
+    };
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadAvailableUnits();
+    loadApplications();
+  </script>
+</body>
+</html>
