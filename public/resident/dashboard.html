@@ -17,9 +17,11 @@
     }
   </script>
 
-  <!-- ตั้งค่า API Base URL (แก้ไขเป็น Render URL ของคุณ) -->
+  <!-- ตั้งค่า API Base URL (เว้นว่างเพื่อใช้ same-origin) -->
   <script>
-    window.API_BASE_URL = 'https://your-app.onrender.com';
+    window.API_BASE_URL = '';
+    // หรือใส่ Render URL ถ้าแยก frontend/backend
+    // window.API_BASE_URL = 'https://your-app.onrender.com';
   </script>
   <!-- Core JS (ห้ามเปลี่ยนลำดับ) -->
   <script src="../../assets/js/utils.js"></script>

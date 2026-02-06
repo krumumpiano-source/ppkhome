@@ -21,3 +21,15 @@ function getQueryParam(name) {
   var m = new URLSearchParams(window.location.search).get(name);
   return m;
 }
+
+// Default API base to same-origin for web app mode
+(function() {
+  if (typeof window === 'undefined') return;
+  if (typeof window.API_BASE_URL === 'string') {
+    if (window.API_BASE_URL.indexOf('your-app.onrender.com') !== -1) {
+      window.API_BASE_URL = '';
+    }
+    return;
+  }
+  window.API_BASE_URL = '';
+})();
