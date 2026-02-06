@@ -139,13 +139,8 @@
   
   <script>
     // Check auth and role
-    if (!Auth.isLoggedIn()) {
-      window.location.href = '../../login.html';
-    }
-    const role = Auth.getRole();
-    if (role !== 'admin' && role !== 'deputy_admin') {
-      window.location.href = '../../resident/dashboard.html';
-    }
+    if (!Auth.requireLogin('../../login.html')) return;
+    if (!RoleGuard.requireMenu('MENU_ADMIN_SETTINGS', '../../index.html')) return;
     
     // Initialize layout
     Layout.init('admin/settings');

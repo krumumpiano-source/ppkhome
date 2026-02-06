@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireMenuPermission } = require('../middleware/auth');
 const {
   getCurrentBillingRound,
   getRoundMonthYear,
@@ -46,7 +46,7 @@ async function getRoundSummary(sessionId, roundId) {
   };
 }
 
-router.get('/executive-dashboard', requireAuth, requireRole(CONFIG.ROLES.EXECUTIVE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.get('/executive-dashboard', requireAuth, requireMenuPermission('MENU_REPORTS'), async (req, res) => {
   const units = getUnitIds();
   const totalUnits = units.house.length + units.flat.length;
   const unitsData = await db.getCollection('UNITS');
@@ -89,7 +89,14 @@ router.get('/executive-dashboard', requireAuth, requireRole(CONFIG.ROLES.EXECUTI
   });
 });
 
-router.get('/billing-rounds', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN, CONFIG.ROLES.EXECUTIVE, CONFIG.ROLES.ACCOUNTING), async (req, res) => {
+router.get('/billing-rounds', requireAuth, requireMenuPermission([
+  'MENU_WATER_ENTRY',
+  'MENU_ELECTRIC_ENTRY',
+  'MENU_MONTHLY_DISBURSEMENT',
+  'MENU_LEDGER',
+  'MENU_SLIP_REVIEW',
+  'MENU_REPORTS'
+]), async (req, res) => {
   const rounds = await db.getCollection('BILLING_ROUNDS');
   const roundsList = rounds.map(r => ({
     roundId: r.roundId,
@@ -104,7 +111,7 @@ router.get('/billing-rounds', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, C
   res.json({ success: true, rounds: roundsList });
 });
 
-router.get('/period', requireAuth, requireRole(CONFIG.ROLES.EXECUTIVE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.get('/period', requireAuth, requireMenuPermission('MENU_REPORTS'), async (req, res) => {
   const { fromDate, toDate } = req.query;
   const from = new Date(fromDate).getTime();
   const to = new Date(toDate).getTime();
@@ -120,13 +127,13 @@ router.get('/period', requireAuth, requireRole(CONFIG.ROLES.EXECUTIVE, CONFIG.RO
   res.json({ success: true, report: summary });
 });
 
-router.get('/round-summary/:roundId', requireAuth, requireRole(CONFIG.ROLES.ACCOUNTING, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.get('/round-summary/:roundId', requireAuth, requireMenuPermission('MENU_MONTHLY_DISBURSEMENT'), async (req, res) => {
   const { roundId } = req.params;
   const summary = await getRoundSummary(req.session.userId, roundId);
   res.json(summary);
 });
 
-router.get('/central-ledger/:roundId', requireAuth, requireRole(CONFIG.ROLES.ACCOUNTING, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.get('/central-ledger/:roundId', requireAuth, requireMenuPermission('MENU_LEDGER'), async (req, res) => {
   const { roundId } = req.params;
   const ledger = await db.getCollection('CENTRAL_LEDGER');
   const income = [];
@@ -146,7 +153,7 @@ router.get('/central-ledger/:roundId', requireAuth, requireRole(CONFIG.ROLES.ACC
   res.json({ success: true, income, expense, balance });
 });
 
-router.post('/verify-bank-balance', requireAuth, requireRole(CONFIG.ROLES.ACCOUNTING, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.post('/verify-bank-balance', requireAuth, requireMenuPermission('MENU_SLIP_REVIEW'), async (req, res) => {
   const { roundId, bankBalance, note } = req.body;
   const summary = await getRoundSummary(req.session.userId, roundId);
   if (!summary.success) {
@@ -178,7 +185,7 @@ router.post('/verify-bank-balance', requireAuth, requireRole(CONFIG.ROLES.ACCOUN
   });
 });
 
-router.get('/audit-log', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN, CONFIG.ROLES.EXECUTIVE), async (req, res) => {
+router.get('/audit-log', requireAuth, requireMenuPermission('MENU_ADMIN_SETTINGS'), async (req, res) => {
   const { from, to, userId, action, limit = 500 } = req.query;
   const logs = await db.getCollection('AUDIT_LOG');
   const fromTime = from ? new Date(from).getTime() : 0;

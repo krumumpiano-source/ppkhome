@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireMenuPermission } = require('../middleware/auth');
 const { auditLog, CONFIG } = require('../services/logic');
 const db = require('../services/db');
 
-router.get('/profile', requireAuth, async (req, res) => {
+router.get('/profile', requireAuth, requireMenuPermission('MENU_PROFILE_SETTINGS'), async (req, res) => {
   const users = await db.getCollection('USERS');
   const user = db.findInCollection(users, u => u.userId === req.session.userId);
   if (!user) {
@@ -22,7 +22,7 @@ router.get('/profile', requireAuth, async (req, res) => {
   res.json({ success: true, profile });
 });
 
-router.post('/profile', requireAuth, async (req, res) => {
+router.post('/profile', requireAuth, requireMenuPermission('MENU_PROFILE_SETTINGS'), async (req, res) => {
   const users = await db.getCollection('USERS');
   const user = db.findInCollection(users, u => u.userId === req.session.userId);
   if (!user) {
@@ -44,7 +44,7 @@ router.post('/profile', requireAuth, async (req, res) => {
   res.json({ success: true, message: 'บันทึกเรียบร้อย' });
 });
 
-router.get('/list', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.get('/list', requireAuth, requireMenuPermission('MENU_ADMIN_SETTINGS'), async (req, res) => {
   const users = await db.getCollection('USERS');
   const userList = users.map(u => {
     const { passwordHash, ...rest } = u;
@@ -53,7 +53,7 @@ router.get('/list', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DE
   res.json({ success: true, users: userList });
 });
 
-router.post('/set-status-or-role', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.post('/set-status-or-role', requireAuth, requireMenuPermission('MENU_ADMIN_SETTINGS'), async (req, res) => {
   const { targetUserId, actionType, value } = req.body;
   const users = await db.getCollection('USERS');
   const user = db.findInCollection(users, u => u.userId === targetUserId);
@@ -72,7 +72,7 @@ router.post('/set-status-or-role', requireAuth, requireRole(CONFIG.ROLES.ADMIN, 
   res.json({ success: true, message: 'บันทึกเรียบร้อย' });
 });
 
-router.post('/move-out', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.post('/move-out', requireAuth, requireMenuPermission('MENU_ADMIN_SETTINGS'), async (req, res) => {
   const { targetUserId, reason } = req.body;
   
   if (!targetUserId) {

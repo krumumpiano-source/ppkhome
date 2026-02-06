@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireMenuPermission } = require('../middleware/auth');
 const {
   getCurrentBillingRound,
   getRoundMonthYear,
@@ -19,7 +19,7 @@ const {
 const db = require('../services/db');
 const drive = require('../services/drive');
 
-router.get('/billing/:unitId', requireAuth, async (req, res) => {
+router.get('/billing/:unitId', requireAuth, requireMenuPermission('MENU_BILLING'), async (req, res) => {
   const { unitId } = req.params;
   if ((req.session.role === CONFIG.ROLES.RESIDENT || req.session.role === CONFIG.ROLES.COMMITTEE) && req.session.unitId !== unitId) {
     return res.json({ success: false, message: 'ไม่มีสิทธิ์ดูหน่วยนี้' });
@@ -48,19 +48,10 @@ router.get('/billing/:unitId', requireAuth, async (req, res) => {
   });
 });
 
-router.get('/payment-status', requireAuth, async (req, res) => {
+router.get('/payment-status', requireAuth, requireMenuPermission('MENU_BILLING'), async (req, res) => {
   const unitId = req.session.unitId;
   if (!unitId) {
     return res.json({ success: true, items: [], message: null });
-  }
-  if (req.session.role !== CONFIG.ROLES.RESIDENT && req.session.role !== CONFIG.ROLES.COMMITTEE) {
-    if ([CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN, CONFIG.ROLES.ACCOUNTING].includes(req.session.role)) {
-      return res.json({ success: false, message: 'API นี้สำหรับผู้พักอาศัยเท่านั้น' });
-    }
-    return res.json({ success: true, items: [] });
-  }
-  if (req.session.role === CONFIG.ROLES.COMMITTEE && req.session.unitId !== unitId) {
-    return res.json({ success: true, items: [] });
   }
   const rounds = await db.getCollection('BILLING_ROUNDS');
   const today = new Date();
@@ -103,7 +94,7 @@ router.get('/payment-status', requireAuth, async (req, res) => {
   res.json({ success: true, items });
 });
 
-router.post('/payment', requireAuth, async (req, res) => {
+router.post('/payment', requireAuth, requireMenuPermission('MENU_BILLING'), async (req, res) => {
   const { roundId, unitId, amount, slipDataUrl, note } = req.body;
   if (req.session.unitId !== unitId && req.session.role !== CONFIG.ROLES.ADMIN && req.session.role !== CONFIG.ROLES.DEPUTY_ADMIN) {
     return res.json({ success: false, message: 'ไม่มีสิทธิ์ส่งการชำระสำหรับหน่วยนี้' });
@@ -138,7 +129,7 @@ router.post('/payment', requireAuth, async (req, res) => {
   res.json({ success: true, message: 'ส่งหลักฐานเรียบร้อย รอการตรวจสอบ' });
 });
 
-router.get('/payment-history/:unitId', requireAuth, async (req, res) => {
+router.get('/payment-history/:unitId', requireAuth, requireMenuPermission('MENU_BILLING'), async (req, res) => {
   const { unitId } = req.params;
   const limit = parseInt(req.query.limit) || 24;
   if (req.session.unitId !== unitId && ![CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN, CONFIG.ROLES.ACCOUNTING].includes(req.session.role)) {
@@ -156,7 +147,7 @@ router.get('/payment-history/:unitId', requireAuth, async (req, res) => {
   res.json({ success: true, rows });
 });
 
-router.get('/water-form/:unitId', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.get('/water-form/:unitId', requireAuth, requireMenuPermission('MENU_WATER_ENTRY'), async (req, res) => {
   const { unitId } = req.params;
   const readings = await db.getCollection('WATER_READINGS');
   let prevReading = null;
@@ -178,7 +169,7 @@ router.get('/water-form/:unitId', requireAuth, requireRole(CONFIG.ROLES.COMMITTE
   });
 });
 
-router.post('/water-reading', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.post('/water-reading', requireAuth, requireMenuPermission('MENU_WATER_ENTRY'), async (req, res) => {
   const { roundId, unitId, currentReading, note } = req.body;
   const readings = await db.getCollection('WATER_READINGS');
   let prevReading = null;
@@ -216,7 +207,7 @@ router.post('/water-reading', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, C
   res.json({ success: true, message: 'บันทึกเรียบร้อย', units: unitsUsed, amount });
 });
 
-router.get('/electric-form/:roundId', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), (req, res) => {
+router.get('/electric-form/:roundId', requireAuth, requireMenuPermission('MENU_ELECTRIC_ENTRY'), (req, res) => {
   const { roundId } = req.params;
   const { getUnitIds } = require('../services/logic');
   const units = getUnitIds();
@@ -226,7 +217,7 @@ router.get('/electric-form/:roundId', requireAuth, requireRole(CONFIG.ROLES.COMM
   res.json({ success: true, roundId, units: list });
 });
 
-router.post('/electric-reading', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.post('/electric-reading', requireAuth, requireMenuPermission('MENU_ELECTRIC_ENTRY'), async (req, res) => {
   const { roundId, readings, totalBill, lostHouse, lostFlat } = req.body;
   let sum = 0;
   for (const reading of readings) {
@@ -247,7 +238,7 @@ router.post('/electric-reading', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE
   res.json({ success: true, message: warn || 'บันทึกเรียบร้อย', warning: warn });
 });
 
-router.post('/repair-request', requireAuth, async (req, res) => {
+router.post('/repair-request', requireAuth, requireMenuPermission('MENU_RULES_FORMS'), async (req, res) => {
   const { unitId, type, note } = req.body;
   if (req.session.unitId !== unitId && ![CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN].includes(req.session.role)) {
     return res.json({ success: false, message: 'ไม่มีสิทธิ์แจ้งซ่อมสำหรับหน่วยนี้' });
@@ -311,7 +302,7 @@ router.get('/queue-status/:applicationId', async (req, res) => {
   });
 });
 
-router.get('/applications-queue', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.get('/applications-queue', requireAuth, requireMenuPermission('MENU_ADMIN_SETTINGS'), async (req, res) => {
   const applications = await db.getCollection('APPLICATIONS');
   const queue = await db.getCollection('QUEUE');
   const map = {};
@@ -333,7 +324,7 @@ router.get('/applications-queue', requireAuth, requireRole(CONFIG.ROLES.ADMIN, C
   res.json({ success: true, items });
 });
 
-router.post('/reorder-queue', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.post('/reorder-queue', requireAuth, requireMenuPermission('MENU_ADMIN_SETTINGS'), async (req, res) => {
   const { applicationIds } = req.body;
   const queue = await db.getCollection('QUEUE');
   for (let i = 0; i < applicationIds.length; i++) {
@@ -347,7 +338,7 @@ router.post('/reorder-queue', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFI
   res.json({ success: true, message: 'จัดลำดับคิวเรียบร้อย' });
 });
 
-router.post('/application-approve', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.post('/application-approve', requireAuth, requireMenuPermission('MENU_ADMIN_SETTINGS'), async (req, res) => {
   const { applicationId, unitId, note } = req.body;
   
   if (!applicationId) {
@@ -437,7 +428,7 @@ router.post('/application-approve', requireAuth, requireRole(CONFIG.ROLES.ADMIN,
   res.json({ success: true, message: 'อนุมัติคำร้องเรียบร้อย' });
 });
 
-router.post('/application-reject', requireAuth, requireRole(CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+router.post('/application-reject', requireAuth, requireMenuPermission('MENU_ADMIN_SETTINGS'), async (req, res) => {
   const { applicationId, reason } = req.body;
   
   if (!applicationId) {
@@ -479,7 +470,7 @@ router.post('/application-reject', requireAuth, requireRole(CONFIG.ROLES.ADMIN, 
   res.json({ success: true, message: 'ปฏิเสธคำร้องเรียบร้อย' });
 });
 
-router.get('/water-report/:roundId', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN, CONFIG.ROLES.EXECUTIVE), async (req, res) => {
+router.get('/water-report/:roundId', requireAuth, requireMenuPermission('MENU_WATER_ENTRY'), async (req, res) => {
   const { roundId } = req.params;
   
   // ดึงข้อมูล water readings สำหรับ round นี้

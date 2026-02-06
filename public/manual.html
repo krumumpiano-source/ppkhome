@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n-title="nav.manual">คู่มือ</title>
+  
+  <!-- Tailwind (Offline-first) -->
+  <link rel="stylesheet" href="assets/css/tailwind-inline.css" />
+  <script>
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+  
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/i18n-modern.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/role-guard.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/ui-components.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+  
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2" data-i18n="nav.manual">คู่มือ</h1>
+      <p class="text-gray-600">แนวทางการใช้งานระบบบริหารจัดการที่พักอาศัย</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-3">เริ่มต้นใช้งาน</h2>
+      <ol class="list-decimal list-inside text-gray-700 space-y-2">
+        <li>เข้าสู่ระบบด้วยบัญชีที่ได้รับจากผู้ดูแล</li>
+        <li>ตรวจสอบสิทธิ์เมนูด้านบนตามบทบาทของคุณ</li>
+        <li>ทำรายการตามเมนู เช่น แจ้งยอด บันทึกค่าน้ำ/ไฟ หรือดูรายงาน</li>
+      </ol>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-3">คำถามที่พบบ่อย</h2>
+      <div class="space-y-4 text-gray-700">
+        <div>
+          <p class="font-medium">ไม่เห็นเมนูที่ต้องการ?</p>
+          <p class="text-sm text-gray-600">กรุณาติดต่อผู้ดูแลระบบให้ตรวจสอบสิทธิ์ของคุณ</p>
+        </div>
+        <div>
+          <p class="font-medium">ต้องการเปลี่ยนข้อมูลส่วนตัว?</p>
+          <p class="text-sm text-gray-600">ใช้เมนู “ตั้งค่าข้อมูลส่วนตัว” เพื่อแก้ไขข้อมูล</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    if (!Auth.requireLogin('login.html')) return;
+    if (!RoleGuard.requireMenu('MENU_MANUAL', 'index.html')) return;
+    Layout.init('manual.html');
+  </script>
+</body>
+</html>

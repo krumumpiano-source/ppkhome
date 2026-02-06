@@ -1,153 +1,257 @@
 /**
- * role-guard.js — RBAC: แสดงเมนูตาม Role, redirect ถ้าไม่มีสิทธิ์
+ * role-guard.js — RBAC: แสดงเมนูตาม Permission, redirect ถ้าไม่มีสิทธิ์
  */
-var ROLES = {
-  resident: 'resident',
-  committee: 'committee',
-  accounting: 'accounting',
-  admin: 'admin',
-  deputy_admin: 'deputy_admin',
-  executive: 'executive',
-  applicant: 'applicant'
+var DEFAULT_MENU_REGISTRY = [
+  {
+    id: 'MENU_BILLING',
+    labelKey: 'nav.billing',
+    href: 'resident/billing.html',
+    order: 10,
+    paths: ['resident/dashboard.html', 'resident/billing.html', 'resident/history.html']
+  },
+  {
+    id: 'MENU_WATER_ENTRY',
+    labelKey: 'nav.waterEntry',
+    href: 'committee/water-meter.html',
+    order: 20,
+    paths: ['committee/water-meter.html', 'committee/task-status.html']
+  },
+  {
+    id: 'MENU_ELECTRIC_ENTRY',
+    labelKey: 'nav.electricEntry',
+    href: 'committee/electric-bill.html',
+    order: 30,
+    paths: ['committee/electric-bill.html']
+  },
+  {
+    id: 'MENU_MONTHLY_DISBURSEMENT',
+    labelKey: 'nav.monthlyDisbursement',
+    href: 'accounting/summary.html',
+    order: 40,
+    paths: ['accounting/summary.html']
+  },
+  {
+    id: 'MENU_LEDGER',
+    labelKey: 'nav.ledger',
+    href: 'accounting/ledger.html',
+    order: 50,
+    paths: ['accounting/ledger.html']
+  },
+  {
+    id: 'MENU_SLIP_REVIEW',
+    labelKey: 'nav.slipReview',
+    href: 'accounting/bank-check.html',
+    order: 60,
+    paths: ['accounting/bank-check.html']
+  },
+  {
+    id: 'MENU_PROFILE_SETTINGS',
+    labelKey: 'nav.profileSettings',
+    href: 'resident/profile.html',
+    order: 70,
+    paths: ['resident/profile.html']
+  },
+  {
+    id: 'MENU_ADMIN_SETTINGS',
+    labelKey: 'nav.adminSettings',
+    href: 'admin/permissions.html',
+    order: 80,
+    paths: [
+      'admin/permissions.html',
+      'admin/users.html',
+      'admin/roles.html',
+      'admin/assets.html',
+      'admin/queue.html',
+      'admin/settings.html',
+      'admin/about-manager.html',
+      'admin/audit-log.html'
+    ]
+  },
+  {
+    id: 'MENU_RULES_FORMS',
+    labelKey: 'nav.rulesForms',
+    href: 'rules.html',
+    order: 90,
+    paths: ['rules.html', 'applicant/apply.html', 'applicant/queue-status.html']
+  },
+  {
+    id: 'MENU_MANUAL',
+    labelKey: 'nav.manual',
+    href: 'manual.html',
+    order: 100,
+    paths: ['manual.html']
+  },
+  {
+    id: 'MENU_REPORTS',
+    labelKey: 'nav.reports',
+    href: 'executive/dashboard.html',
+    order: 110,
+    paths: ['admin/reports.html', 'executive/dashboard.html', 'executive/reports.html']
+  }
+];
+
+var DEFAULT_ROLE_MENUS = {
+  admin: [
+    'MENU_BILLING',
+    'MENU_WATER_ENTRY',
+    'MENU_ELECTRIC_ENTRY',
+    'MENU_MONTHLY_DISBURSEMENT',
+    'MENU_LEDGER',
+    'MENU_SLIP_REVIEW',
+    'MENU_PROFILE_SETTINGS',
+    'MENU_ADMIN_SETTINGS',
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL',
+    'MENU_REPORTS'
+  ],
+  deputy_admin: [
+    'MENU_BILLING',
+    'MENU_WATER_ENTRY',
+    'MENU_ELECTRIC_ENTRY',
+    'MENU_MONTHLY_DISBURSEMENT',
+    'MENU_LEDGER',
+    'MENU_SLIP_REVIEW',
+    'MENU_PROFILE_SETTINGS',
+    'MENU_ADMIN_SETTINGS',
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL',
+    'MENU_REPORTS'
+  ],
+  committee: [
+    'MENU_BILLING',
+    'MENU_WATER_ENTRY',
+    'MENU_ELECTRIC_ENTRY',
+    'MENU_PROFILE_SETTINGS',
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL'
+  ],
+  accounting: [
+    'MENU_MONTHLY_DISBURSEMENT',
+    'MENU_LEDGER',
+    'MENU_SLIP_REVIEW',
+    'MENU_REPORTS',
+    'MENU_PROFILE_SETTINGS',
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL'
+  ],
+  resident: [
+    'MENU_BILLING',
+    'MENU_PROFILE_SETTINGS',
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL'
+  ],
+  executive: [
+    'MENU_REPORTS',
+    'MENU_PROFILE_SETTINGS',
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL'
+  ],
+  applicant: [
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL'
+  ],
+  water_staff: [
+    'MENU_WATER_ENTRY',
+    'MENU_PROFILE_SETTINGS',
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL'
+  ],
+  electric_staff: [
+    'MENU_ELECTRIC_ENTRY',
+    'MENU_PROFILE_SETTINGS',
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL'
+  ],
+  external: [
+    'MENU_RULES_FORMS',
+    'MENU_MANUAL'
+  ]
 };
+
 var RoleGuard = {
   role: function () { return Auth.getRole(); },
+  rolePreset: function () { return Auth.getRolePreset ? Auth.getRolePreset() : ''; },
   require: function (allowedRoles) {
     var r = this.role();
     if (allowedRoles.indexOf(r) >= 0) return true;
     window.location.href = (typeof getLoginUrl === 'function' ? getLoginUrl() : 'login.html');
     return false;
   },
-  menu: function () {
+  getRegistry: function () {
+    var registry = Auth.getMenuRegistry ? Auth.getMenuRegistry() : [];
+    if (registry && registry.length) return registry;
+    return DEFAULT_MENU_REGISTRY;
+  },
+  getAllowedMenuIds: function () {
+    var allowed = Auth.getAllowedMenus ? Auth.getAllowedMenus() : [];
+    if (allowed && allowed.length) return allowed;
     var r = this.role();
-    var items = [];
-    
-    // Use new I18N system if available, fallback to old system
-    var getLabel = function(key) {
-      if (typeof I18N !== 'undefined' && typeof I18N.t === 'function') {
-        return I18N.t('nav.' + key);
+    return DEFAULT_ROLE_MENUS[r] || [];
+  },
+  resolveLabel: function (labelKey) {
+    if (typeof I18N !== 'undefined' && typeof I18N.t === 'function') {
+      return I18N.t(labelKey);
+    }
+    var lang = (typeof I18N !== 'undefined' && I18N.currentLang === 'en') ? 'en' : 'th';
+    var labels = {
+      th: {
+        'nav.billing': 'ยอดต้องชำระ / ส่งสลิป',
+        'nav.waterEntry': 'บันทึกค่าน้ำ',
+        'nav.electricEntry': 'บันทึกค่าไฟ',
+        'nav.monthlyDisbursement': 'เบิกจ่ายประจำเดือน',
+        'nav.ledger': 'บัญชีรายรับรายจ่าย',
+        'nav.slipReview': 'ตรวจสลิป',
+        'nav.profileSettings': 'ตั้งค่าข้อมูลส่วนตัว',
+        'nav.adminSettings': 'ตั้งค่าแอดมิน',
+        'nav.rulesForms': 'ระเบียบ / แบบฟอร์ม',
+        'nav.manual': 'คู่มือ',
+        'nav.reports': 'สถิติและการรายงานผล',
+        'nav.logout': 'ออกจากระบบ'
+      },
+      en: {
+        'nav.billing': 'Billing & Payment',
+        'nav.waterEntry': 'Water Entry',
+        'nav.electricEntry': 'Electric Entry',
+        'nav.monthlyDisbursement': 'Monthly Disbursement',
+        'nav.ledger': 'Income/Expense Ledger',
+        'nav.slipReview': 'Slip Review',
+        'nav.profileSettings': 'Profile Settings',
+        'nav.adminSettings': 'Admin Settings',
+        'nav.rulesForms': 'Rules & Forms',
+        'nav.manual': 'Manual',
+        'nav.reports': 'Statistics & Reports',
+        'nav.logout': 'Logout'
       }
-      // Fallback to old system
-      var lang = (typeof I18N !== 'undefined' && I18N.currentLang === 'en') ? 'en' : 'th';
-      var labels = {
-        th: {
-          about: 'เกี่ยวกับบ้านพักครู',
-          dashboard: 'แดชบอร์ด',
-          billing: 'แจ้งยอด & ส่งสลิป',
-          history: 'ประวัติการชำระ',
-          profile: 'ข้อมูลส่วนตัว',
-          waterMeter: 'บันทึกมิเตอร์น้ำ',
-          electricBill: 'บันทึกค่าไฟ',
-          taskStatus: 'สถานะงาน',
-          summary: 'สรุปรอบการเงิน',
-          ledger: 'บัญชีกองกลาง',
-          bankCheck: 'ตรวจสอบยอดเงิน',
-          users: 'จัดการผู้ใช้',
-          roles: 'บทบาท',
-          assets: 'บ้านพัก/แฟลต',
-          queue: 'คิวคำร้อง',
-          settings: 'ตั้งค่าระบบ',
-          aboutManager: 'จัดการหน้าเกี่ยวกับ',
-          reports: 'รายงาน',
-          auditLog: 'Audit Log',
-          executiveDashboard: 'แดชบอร์ดผู้บริหาร',
-          executiveReports: 'รายงาน',
-          apply: 'ยื่นคำร้อง',
-          queueStatus: 'สถานะคิว',
-          logout: 'ออกจากระบบ'
-        },
-        en: {
-          about: 'About Teacher Housing',
-          dashboard: 'Dashboard',
-          billing: 'Submit Payment',
-          history: 'Payment History',
-          profile: 'Profile',
-          waterMeter: 'Record Water Meter',
-          electricBill: 'Record Electricity',
-          taskStatus: 'Task Status',
-          summary: 'Financial Summary',
-          ledger: 'Central Ledger',
-          bankCheck: 'Verify Balance',
-          users: 'Manage Users',
-          roles: 'Roles',
-          assets: 'Housing/Flats',
-          queue: 'Application Queue',
-          settings: 'System Settings',
-          aboutManager: 'Manage About Page',
-          reports: 'Reports',
-          auditLog: 'Audit Log',
-          executiveDashboard: 'Executive Dashboard',
-          executiveReports: 'Reports',
-          apply: 'Apply',
-          queueStatus: 'Queue Status',
-          logout: 'Logout'
-        }
-      };
-      return (labels[lang] || labels.th)[key] || key;
     };
-    
-    var t = {
-      about: getLabel('about'),
-      dashboard: getLabel('dashboard'),
-      billing: getLabel('billing'),
-      history: getLabel('history'),
-      profile: getLabel('profile'),
-      waterMeter: getLabel('waterMeter'),
-      electricBill: getLabel('electricBill'),
-      taskStatus: getLabel('taskStatus'),
-      summary: getLabel('summary'),
-      ledger: getLabel('ledger'),
-      bankCheck: getLabel('bankCheck'),
-      users: getLabel('users'),
-      roles: getLabel('roles'),
-      assets: getLabel('assets'),
-      queue: getLabel('queue'),
-      settings: getLabel('settings'),
-      aboutManager: getLabel('aboutManager'),
-      reports: getLabel('reports'),
-      auditLog: getLabel('auditLog'),
-      executiveDashboard: getLabel('executiveDashboard'),
-      executiveReports: getLabel('executiveReports'),
-      apply: getLabel('apply'),
-      queueStatus: getLabel('queueStatus'),
-      logout: getLabel('logout')
-    };
-    items.push({ href: 'index.html', label: t.about });
-    if (r === ROLES.resident || r === ROLES.committee || r === ROLES.accounting) {
-      items.push({ href: 'resident/dashboard.html', label: t.dashboard });
-      items.push({ href: 'resident/billing.html', label: t.billing });
-      items.push({ href: 'resident/history.html', label: t.history });
-      items.push({ href: 'resident/profile.html', label: t.profile });
+    return (labels[lang] || labels.th)[labelKey] || labelKey;
+  },
+  menu: function () {
+    var allowed = this.getAllowedMenuIds();
+    var registry = this.getRegistry();
+    var items = [];
+    for (var i = 0; i < registry.length; i++) {
+      if (allowed.indexOf(registry[i].id) >= 0) {
+        items.push({
+          id: registry[i].id,
+          href: registry[i].href,
+          label: this.resolveLabel(registry[i].labelKey),
+          order: registry[i].order || 0
+        });
+      }
     }
-    if (r === ROLES.committee) {
-      items.push({ href: 'committee/water-meter.html', label: t.waterMeter });
-      items.push({ href: 'committee/electric-bill.html', label: t.electricBill });
-      items.push({ href: 'committee/task-status.html', label: t.taskStatus });
-    }
-    if (r === ROLES.accounting) {
-      items.push({ href: 'accounting/summary.html', label: t.summary });
-      items.push({ href: 'accounting/ledger.html', label: t.ledger });
-      items.push({ href: 'accounting/bank-check.html', label: t.bankCheck });
-    }
-    if (r === ROLES.admin || r === ROLES.deputy_admin) {
-      items.push({ href: 'admin/users.html', label: t.users });
-      items.push({ href: 'admin/roles.html', label: t.roles });
-      items.push({ href: 'admin/assets.html', label: t.assets });
-      items.push({ href: 'admin/queue.html', label: t.queue });
-      items.push({ href: 'admin/settings.html', label: t.settings });
-      items.push({ href: 'admin/about-manager.html', label: t.aboutManager });
-      items.push({ href: 'admin/reports.html', label: t.reports });
-      items.push({ href: 'admin/audit-log.html', label: t.auditLog });
-    }
-    if (r === ROLES.executive) {
-      items.push({ href: 'executive/dashboard.html', label: t.executiveDashboard });
-      items.push({ href: 'executive/reports.html', label: t.executiveReports });
-    }
-    if (r === ROLES.applicant) {
-      items.push({ href: 'applicant/apply.html', label: t.apply });
-      items.push({ href: 'applicant/queue-status.html', label: t.queueStatus });
-    }
+    items.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
     return items;
+  },
+  hasMenu: function (menuId) {
+    var allowed = this.getAllowedMenuIds();
+    return allowed.indexOf(menuId) >= 0;
+  },
+  requireMenu: function (menuId, redirectPath) {
+    if (!Auth.isLoggedIn()) return true;
+    if (this.hasMenu(menuId)) return true;
+    var fallback = redirectPath || this.resolvePath('index.html');
+    window.location.href = fallback;
+    return false;
   },
   // แปลง path ให้ถูกต้องตามตำแหน่งปัจจุบัน
   resolvePath: function(href) {
@@ -184,8 +288,29 @@ var RoleGuard = {
     
     return href;
   },
-  
+  findMenuForPath: function (path) {
+    var registry = this.getRegistry();
+    var needle = path || window.location.pathname || '';
+    for (var i = 0; i < registry.length; i++) {
+      var paths = registry[i].paths || [];
+      for (var j = 0; j < paths.length; j++) {
+        if (needle.indexOf(paths[j]) >= 0) return registry[i].id;
+      }
+      if (registry[i].href && needle.indexOf(registry[i].href) >= 0) return registry[i].id;
+    }
+    return null;
+  },
+  guardCurrentPage: function () {
+    if (!Auth.isLoggedIn()) return true;
+    var menuId = this.findMenuForPath();
+    if (!menuId) return true;
+    if (this.hasMenu(menuId)) return true;
+    var fallback = this.resolvePath('index.html');
+    window.location.href = fallback;
+    return false;
+  },
   renderNav: function (currentPath) {
+    this.guardCurrentPage();
     var items = this.menu();
     var html = '';
     for (var i = 0; i < items.length; i++) {
@@ -194,8 +319,7 @@ var RoleGuard = {
       html += '<a href="' + escapeHtml(resolvedHref) + '" class="' + cls + '">' + escapeHtml(items[i].label) + '</a>';
     }
     if (Auth.isLoggedIn()) {
-      var lang = (typeof I18N !== 'undefined' && I18N.currentLang === 'en') ? 'en' : 'th';
-      var logoutLabel = lang === 'en' ? 'Logout' : 'ออกจากระบบ';
+      var logoutLabel = this.resolveLabel('nav.logout');
       html += '<a href="#" id="nav-logout">' + escapeHtml(logoutLabel) + '</a>';
     }
     return html;

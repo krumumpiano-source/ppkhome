@@ -113,6 +113,29 @@ var API = {
         } else if (action === 'listUsers') {
           route = '/api/users/list';
           method = 'GET';
+        } else if (action === 'getMenuRegistry') {
+          route = '/api/permissions/menus';
+          method = 'GET';
+        } else if (action === 'getMyPermissions') {
+          route = '/api/permissions/me';
+          method = 'GET';
+        } else if (action === 'getUserMenuPermissions') {
+          route = '/api/permissions/user/' + encodeURIComponent(params.userId || '');
+          method = 'GET';
+        } else if (action === 'updateUserMenuPermissions') {
+          route = '/api/permissions/user/' + encodeURIComponent(params.userId || '');
+          method = 'POST';
+          bodyParams = { permissions: params.permissions || {} };
+        } else if (action === 'resetUserMenuPermissions') {
+          route = '/api/permissions/user/' + encodeURIComponent(params.userId || '') + '/reset';
+          method = 'POST';
+        } else if (action === 'getPermissionAudit') {
+          route = '/api/permissions/audit';
+          method = 'GET';
+          var permQuery = [];
+          if (params.targetUserId) permQuery.push('targetUserId=' + encodeURIComponent(params.targetUserId));
+          if (params.limit) permQuery.push('limit=' + encodeURIComponent(params.limit));
+          if (permQuery.length > 0) route += '?' + permQuery.join('&');
         } else if (action === 'setUserStatusOrRole') {
           route = '/api/users/set-status-or-role';
           method = 'POST';

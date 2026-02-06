@@ -22,8 +22,8 @@
   <script src="../assets/js/api.js"></script>
   <script src="../assets/js/role-guard.js"></script>
   <script>
-    if (!Auth.isLoggedIn()) location.href = '../login.html';
-    if (Auth.getRole() !== 'accounting' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    if (!Auth.requireLogin('../login.html')) return;
+    if (!RoleGuard.requireMenu('MENU_LEDGER', '../index.html')) return;
     document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('accounting/ledger');
     document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
     var roundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);

@@ -5,6 +5,7 @@ const usersRoutes = require('./routes/users');
 const housingRoutes = require('./routes/housing');
 const reportRoutes = require('./routes/report');
 const notifyRoutes = require('./routes/notify');
+const permissionsRoutes = require('./routes/permissions');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/housing', housingRoutes);
 app.use('/api/report', reportRoutes);
 app.use('/api/notify', notifyRoutes);
+app.use('/api/permissions', permissionsRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

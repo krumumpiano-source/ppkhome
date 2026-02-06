@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { hashPassword, createSession, getSession, deleteSession, auditLog, CONFIG } = require('../services/logic');
+const { getEffectiveMenuPermissions, MENU_REGISTRY } = require('../services/permissions');
 const db = require('../services/db');
 
 router.post('/login', async (req, res) => {
@@ -27,6 +28,7 @@ router.post('/login', async (req, res) => {
     return res.json({ success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' });
   }
   const session = createSession(user.userId, user.role, user.unitId);
+  const permissions = await getEffectiveMenuPermissions(user.userId, user.role);
   await auditLog('login', user.userId, { role: user.role });
   res.json({
     success: true,
@@ -35,6 +37,9 @@ router.post('/login', async (req, res) => {
     role: user.role,
     unitId: user.unitId || null,
     mustChangePassword: user.mustChangePassword || false,
+    allowedMenus: permissions.allowedMenuIds,
+    menuRegistry: MENU_REGISTRY,
+    rolePreset: permissions.roleKey,
     message: user.mustChangePassword ? 'กรุณาเปลี่ยนรหัสผ่านก่อนใช้งาน' : 'เข้าสู่ระบบสำเร็จ'
   });
 });

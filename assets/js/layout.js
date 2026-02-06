@@ -170,6 +170,9 @@ const Layout = {
   init: function(currentPath) {
     // Wait for I18N to be ready
     var initLayout = () => {
+      if (typeof RoleGuard !== 'undefined' && typeof RoleGuard.guardCurrentPage === 'function') {
+        if (!RoleGuard.guardCurrentPage()) return;
+      }
       // Render header
       const headerPlaceholder = document.getElementById('app-header');
       if (headerPlaceholder) {
