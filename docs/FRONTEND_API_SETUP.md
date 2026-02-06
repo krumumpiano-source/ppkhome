@@ -2,6 +2,10 @@
 
 ## การตั้งค่า API Endpoint สำหรับ Frontend
 
+> ✅ **Web App Mode (แนะนำ)**  
+> หากให้ Backend เสิร์ฟหน้าเว็บ (จาก `/public` และ `/assets`) สามารถตั้ง `API_BASE_URL` เป็นค่าว่าง (`''`)
+> เพื่อใช้ same-origin ได้ทันที ไม่ต้องใส่ Render URL
+
 ### 1. ตั้งค่า API Base URL
 
 #### วิธีที่ 1: ตั้งค่าใน HTML (แนะนำ)
@@ -10,7 +14,10 @@
 
 ```html
 <script>
-  window.API_BASE_URL = 'https://your-app.onrender.com';
+  // Web App (same-origin)
+  window.API_BASE_URL = '';
+  // หรือใส่ Render URL ถ้าแยก frontend/backend
+  // window.API_BASE_URL = 'https://your-app.onrender.com';
 </script>
 ```
 
@@ -20,14 +27,14 @@
 
 ```javascript
 var API = {
-  base: 'https://your-app.onrender.com', // ตั้งค่า Render URL ที่นี่
+  base: '', // เว้นว่างเพื่อใช้ same-origin หรือใส่ Render URL ที่นี่
   // ...
 };
 ```
 
 #### วิธีที่ 3: ใช้ Environment Variable (สำหรับ GitHub Pages)
 
-ถ้าใช้ GitHub Pages สามารถใช้ `window.location.origin` และตั้งค่า redirect:
+ถ้าใช้ GitHub Pages ต้องกำหนด Render URL ให้ชัดเจน:
 
 ```javascript
 // ใน api.js
@@ -44,7 +51,10 @@ var apiBase = this.base || window.API_BASE_URL || 'https://your-app.onrender.com
 <head>
   <!-- ... -->
   <script>
-    window.API_BASE_URL = 'https://your-app.onrender.com';
+    // Web App (same-origin)
+    window.API_BASE_URL = '';
+    // หรือใส่ Render URL ถ้าแยก frontend/backend
+    // window.API_BASE_URL = 'https://your-app.onrender.com';
   </script>
   <script src="../assets/js/utils.js"></script>
   <script src="../assets/js/auth.js"></script>
@@ -117,8 +127,7 @@ API.run('getMyProfile', { sessionId: Auth.getSessionId() }, callback);
 Frontend ยังรองรับ Offline Mode ด้วย Mock Data:
 
 - เปิดไฟล์ HTML โดยตรง (`file://`) → ใช้ Mock Data
-- ไม่มี `API_BASE_URL` → ใช้ Mock Data
-- `localhost` โดยไม่มี base URL → ใช้ Mock Data
+- ตั้งค่า `window.OFFLINE_MODE = true` ใน HTML → ใช้ Mock Data
 
 ---
 
@@ -147,7 +156,7 @@ Frontend ยังรองรับ Offline Mode ด้วย Mock Data:
 
 ## Checklist
 
-- [ ] ตั้งค่า `API_BASE_URL` ใน HTML หรือ `api.js`
+- [ ] ตั้งค่า `API_BASE_URL` ใน HTML หรือ `api.js` (เว้นว่างได้ถ้า same-origin)
 - [ ] ทดสอบ `/health` endpoint
 - [ ] ทดสอบ Login API
 - [ ] ตรวจสอบ CORS settings

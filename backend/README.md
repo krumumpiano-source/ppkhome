@@ -45,6 +45,13 @@ npm start
 
 Server runs on `PORT` environment variable (default: 3000).
 
+## Web App Mode
+
+Backend จะเสิร์ฟหน้าเว็บจาก `/public` และ `/assets` อัตโนมัติ:
+
+- เปิด `http://localhost:3000`
+- ถ้าใช้ same-origin ให้ตั้ง `window.API_BASE_URL = ''` (เว้นว่าง)
+
 ## Environment Variables
 
 Required:

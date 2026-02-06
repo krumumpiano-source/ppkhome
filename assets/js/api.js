@@ -10,12 +10,42 @@ var API = {
   init: function(baseUrl) {
     this.base = baseUrl || null;
   },
+
+  normalizeBase: function(baseUrl) {
+    if (typeof baseUrl !== 'string') return '';
+    var trimmed = baseUrl.trim();
+    if (!trimmed) return '';
+    return trimmed.replace(/\/+$/, '');
+  },
+
+  isPlaceholderBase: function(baseUrl) {
+    return baseUrl.indexOf('your-app.onrender.com') !== -1;
+  },
+
+  resolveBase: function() {
+    var direct = this.normalizeBase(this.base);
+    if (direct && this.isPlaceholderBase(direct)) {
+      direct = '';
+    }
+    if (direct) return direct;
+
+    var configured = this.normalizeBase(window.API_BASE_URL);
+    if (configured && !this.isPlaceholderBase(configured)) {
+      return configured;
+    }
+    return '';
+  },
   
   // ตรวจสอบว่าเป็น offline mode หรือไม่
   checkOfflineMode: function() {
+    if (window.OFFLINE_MODE === true) {
+      this.offlineMode = true;
+      return this.offlineMode;
+    }
+    var hasExplicitBase = (typeof this.base === 'string') || (typeof window.API_BASE_URL === 'string');
     this.offlineMode = (window.location.protocol === 'file:' || 
                         window.location.hostname === '' ||
-                        (window.location.hostname === 'localhost' && !this.base && !window.API_BASE_URL));
+                        (window.location.hostname === 'localhost' && !hasExplicitBase));
     return this.offlineMode;
   },
   
@@ -61,14 +91,7 @@ var API = {
       // Online Mode: เรียก Backend (Render)
       try {
         // กำหนด API endpoint
-        var apiBase = this.base || window.API_BASE_URL || '';
-        if (!apiBase) {
-          if (callback) callback({ 
-            success: false, 
-            message: 'API Base URL ไม่ได้ตั้งค่า กรุณาตั้งค่า window.API_BASE_URL หรือ API.base' 
-          });
-          return;
-        }
+        var apiBase = this.resolveBase();
         
         // กำหนด route ตาม action
         var route = '';
