@@ -185,6 +185,40 @@
       background-color: #6f42c1;
       color: white;
     }
+    .request-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+    .request-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn-approve {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-approve:hover {
+      background-color: #218838;
+    }
+    .btn-reject {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-reject:hover {
+      background-color: #c82333;
+    }
   </style>
 </head>
 <body>
@@ -193,6 +227,10 @@
   <main class="main container">
     <div class="card">
       <h2>จัดการผู้ใช้ & สิทธิ์</h2>
+      <h3>คำขอลงทะเบียน</h3>
+      <div id="registration-alert" class="alert"></div>
+      <div id="registration-list"></div>
+      <hr>
       <div id="alert"></div>
       <div id="list"></div>
     </div>
@@ -254,6 +292,7 @@
     });
 
     var users = [];
+    var registrationRequests = [];
 
     // ฟังก์ชันแปลง role เป็นภาษาไทย
     function getRoleName(role) {
@@ -363,6 +402,89 @@
       });
     }
 
+    function loadRegistrationRequests() {
+      API.run('listRegistrationRequests', { sessionId: Auth.getSessionId() }, function (res) {
+        var el = document.getElementById('registration-list');
+        var alertEl = document.getElementById('registration-alert');
+        if (!res.success) {
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'ไม่สามารถโหลดคำขอลงทะเบียนได้';
+          alertEl.style.display = 'block';
+          el.innerHTML = '';
+          return;
+        }
+        registrationRequests = res.requests || [];
+        if (!registrationRequests.length) {
+          el.innerHTML = '<p class="text-muted">ยังไม่มีคำขอลงทะเบียน</p>';
+          return;
+        }
+        var html = '';
+        registrationRequests.forEach(function (r) {
+          var status = r.status || 'pending';
+          html += '<div class="request-card">';
+          html += '<div><strong>' + escapeHtml(r.fullName || r.email) + '</strong></div>';
+          html += '<div class="user-info">';
+          html += '<div class="user-info-item"><strong>อีเมล:</strong> ' + escapeHtml(r.email || '-') + '</div>';
+          html += '<div class="user-info-item"><strong>เบอร์โทร:</strong> ' + escapeHtml(r.phone || '-') + '</div>';
+          html += '<div class="user-info-item"><strong>หน่วย:</strong> ' + escapeHtml(r.unitId || '-') + '</div>';
+          html += '<div class="user-info-item"><strong>สถานะ:</strong> ' + getStatusName(status) + '</div>';
+          html += '</div>';
+          if (status === 'pending') {
+            html += '<div class="request-actions">';
+            html += '<button class="btn-approve" onclick="approveRegistration(\'' + escapeHtml(r.requestId) + '\', \'' + escapeHtml(r.unitId || '') + '\')">อนุมัติ</button>';
+            html += '<button class="btn-reject" onclick="rejectRegistration(\'' + escapeHtml(r.requestId) + '\')">ปฏิเสธ</button>';
+            html += '</div>';
+          }
+          html += '</div>';
+        });
+        el.innerHTML = html;
+      });
+    }
+
+    function approveRegistration(requestId, unitId) {
+      var initialPassword = prompt('ตั้งรหัสผ่านเริ่มต้น (อย่างน้อย 8 ตัว ผสมตัวใหญ่/เล็ก/เลข/อักขระพิเศษ)\nเว้นว่างเพื่อใช้ค่าเริ่มต้นของระบบ');
+      if (initialPassword === null) return;
+      API.run('approveRegistration', {
+        sessionId: Auth.getSessionId(),
+        requestId: requestId,
+        unitId: unitId,
+        initialPassword: initialPassword.trim()
+      }, function (res) {
+        var alertEl = document.getElementById('registration-alert');
+        if (res.success) {
+          alertEl.className = 'alert alert-success';
+          alertEl.textContent = res.message + (res.initialPassword ? ' (รหัสผ่านเริ่มต้น: ' + res.initialPassword + ')' : '');
+          loadRegistrationRequests();
+          loadUsers();
+        } else {
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'เกิดข้อผิดพลาด';
+        }
+        alertEl.style.display = 'block';
+      });
+    }
+
+    function rejectRegistration(requestId) {
+      var reason = prompt('เหตุผลในการปฏิเสธ (ถ้ามี)');
+      if (reason === null) return;
+      API.run('rejectRegistration', {
+        sessionId: Auth.getSessionId(),
+        requestId: requestId,
+        reason: reason
+      }, function (res) {
+        var alertEl = document.getElementById('registration-alert');
+        if (res.success) {
+          alertEl.className = 'alert alert-success';
+          alertEl.textContent = res.message || 'ปฏิเสธเรียบร้อย';
+          loadRegistrationRequests();
+        } else {
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'เกิดข้อผิดพลาด';
+        }
+        alertEl.style.display = 'block';
+      });
+    }
+
     // เปิด Modal ย้ายออก
     function openMoveOutModal(userId) {
       var user = users.find(function(u) { return u.userId === userId; });
@@ -429,6 +551,7 @@
 
     // โหลดข้อมูลเมื่อเปิดหน้า
     loadUsers();
+    loadRegistrationRequests();
   </script>
 </body>
 </html>

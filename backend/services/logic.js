@@ -17,12 +17,36 @@ const CONFIG = {
   },
   DEFAULT_WATER_RATE: 9,
   DEFAULT_VACANT_METER_FEE: 9,
-  DEFAULT_COMMON_FEE: 0
+  DEFAULT_COMMON_FEE: 0,
+  DEFAULT_TEMP_PASSWORD: 'TempPass123!'
 };
 
 function hashPassword(password) {
   const salt = process.env.PASSWORD_SALT || 'THR_DEFAULT_SALT';
   return crypto.createHash('sha256').update(salt + password).digest('base64');
+}
+
+function isPasswordComplex(password) {
+  if (!password || password.length < 8) return false;
+  const hasLower = /[a-z]/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  return hasLower && hasUpper && hasNumber && hasSpecial;
+}
+
+function normalizeUnitId(rawUnitId) {
+  if (rawUnitId === undefined || rawUnitId === null) return '';
+  const value = String(rawUnitId).trim().toUpperCase();
+  if (!value) return '';
+  if (value.startsWith(CONFIG.FLAT_PREFIX)) {
+    const num = parseInt(value.slice(1), 10);
+    if (Number.isNaN(num)) return value;
+    return CONFIG.FLAT_PREFIX + String(num);
+  }
+  const num = parseInt(value, 10);
+  if (!Number.isNaN(num)) return String(num);
+  return value;
 }
 
 function createSession(userId, role, unitId) {
@@ -215,12 +239,14 @@ async function getPaymentForRoundAndUnit(roundId, unitId) {
 module.exports = {
   CONFIG,
   hashPassword,
+  isPasswordComplex,
   createSession,
   getSession,
   deleteSession,
   getSysConfig,
   setSysConfig,
   getUnitIds,
+  normalizeUnitId,
   auditLog,
   getHolidayDates,
   addBusinessDays,

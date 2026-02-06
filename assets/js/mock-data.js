@@ -361,6 +361,38 @@ var MOCK_DATA = {
         message: 'ส่งคำขอลงทะเบียนเรียบร้อย เจ้าหน้าที่จะตรวจสอบและแจ้งผลทางอีเมล'
       };
     },
+
+    listRegistrationRequests: function(params) {
+      return {
+        success: true,
+        requests: [
+          {
+            requestId: 'req_mock_001',
+            fullName: 'ครูทดสอบ ระบบ',
+            email: 'teacher@test.com',
+            phone: '0800000000',
+            unitId: 'F2',
+            status: 'pending',
+            requestedAt: new Date().toISOString()
+          }
+        ]
+      };
+    },
+
+    approveRegistration: function(params) {
+      return {
+        success: true,
+        message: 'อนุมัติคำขอลงทะเบียนเรียบร้อย',
+        initialPassword: 'TempPass123!'
+      };
+    },
+
+    rejectRegistration: function(params) {
+      return {
+        success: true,
+        message: 'ปฏิเสธคำขอลงทะเบียนเรียบร้อย'
+      };
+    },
     
     getReportByPeriod: function(params) {
       return {

@@ -102,7 +102,7 @@ var API = {
         } else if (action === 'registerRequest') {
           route = '/api/auth/register-request';
           method = 'POST';
-          bodyParams = { fullName: params.fullName, email: params.email, phone: params.phone };
+          bodyParams = { fullName: params.fullName, email: params.email, phone: params.phone, unitId: params.unitId };
         } else if (action === 'getMyProfile') {
           route = '/api/users/profile';
           method = 'GET';
@@ -113,6 +113,17 @@ var API = {
         } else if (action === 'listUsers') {
           route = '/api/users/list';
           method = 'GET';
+        } else if (action === 'listRegistrationRequests') {
+          route = '/api/users/registration-requests';
+          method = 'GET';
+        } else if (action === 'approveRegistration') {
+          route = '/api/users/registration-approve';
+          method = 'POST';
+          bodyParams = { requestId: params.requestId, unitId: params.unitId, role: params.role, initialPassword: params.initialPassword };
+        } else if (action === 'rejectRegistration') {
+          route = '/api/users/registration-reject';
+          method = 'POST';
+          bodyParams = { requestId: params.requestId, reason: params.reason };
         } else if (action === 'setUserStatusOrRole') {
           route = '/api/users/set-status-or-role';
           method = 'POST';
