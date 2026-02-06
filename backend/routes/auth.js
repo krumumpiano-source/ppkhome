@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { hashPassword, createSession, getSession, deleteSession, auditLog, CONFIG } = require('../services/logic');
+const { hashPassword, createSession, getSession, deleteSession, auditLog, CONFIG, isPasswordComplex, getUnitIds, normalizeUnitId } = require('../services/logic');
 const db = require('../services/db');
 
 router.post('/login', async (req, res) => {
@@ -15,8 +15,16 @@ router.post('/login', async (req, res) => {
     await auditLog('login_fail', null, { email: emailTrim });
     return res.json({ success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' });
   }
-  if (user.status === 'suspended' || user.status === 'rejected') {
-    return res.json({ success: false, message: 'บัญชีนี้ถูกระงับหรือไม่ได้รับการอนุมัติ' });
+  const status = String(user.status || '').toLowerCase();
+  if (status && status !== 'active') {
+    const statusMessages = {
+      pending: 'บัญชีนี้รอการอนุมัติจากผู้ดูแลระบบ',
+      suspended: 'บัญชีนี้ถูกระงับการใช้งาน',
+      rejected: 'บัญชีนี้ไม่ได้รับการอนุมัติ',
+      inactive: 'บัญชีนี้ถูกปิดใช้งาน',
+      moved_out: 'บัญชีนี้ย้ายออกแล้ว'
+    };
+    return res.json({ success: false, message: statusMessages[status] || 'บัญชีนี้ยังไม่พร้อมใช้งาน' });
   }
   if (!user.passwordHash) {
     return res.json({ success: false, message: 'บัญชียังไม่ได้ตั้งรหัสผ่าน' });
@@ -61,8 +69,8 @@ router.post('/change-password', async (req, res) => {
   if (!session) {
     return res.json({ success: false, message: 'กรุณาเข้าสู่ระบบใหม่' });
   }
-  if (!newPassword || newPassword.length < 8) {
-    return res.json({ success: false, message: 'รหัสผ่านต้องไม่น้อยกว่า 8 ตัว และมีทั้งตัวเล็ก ตัวใหญ่ ตัวเลข และอักขระพิเศษ' });
+  if (!isPasswordComplex(newPassword)) {
+    return res.json({ success: false, message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัว และมีตัวเล็ก ตัวใหญ่ ตัวเลข และอักขระพิเศษ' });
   }
   const users = await db.getCollection('USERS');
   const user = db.findInCollection(users, u => u.userId === session.userId);
@@ -105,8 +113,8 @@ router.post('/reset-password', async (req, res) => {
     db.deleteResetToken(token);
     return res.json({ success: false, message: 'ลิงก์หมดอายุ' });
   }
-  if (!newPassword || newPassword.length < 8) {
-    return res.json({ success: false, message: 'รหัสผ่านต้องไม่น้อยกว่า 8 ตัว' });
+  if (!isPasswordComplex(newPassword)) {
+    return res.json({ success: false, message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัว และมีตัวเล็ก ตัวใหญ่ ตัวเลข และอักขระพิเศษ' });
   }
   const users = await db.getCollection('USERS');
   const user = db.findInCollection(users, u => u.userId === resetData.userId);
@@ -122,9 +130,15 @@ router.post('/reset-password', async (req, res) => {
 });
 
 router.post('/register-request', async (req, res) => {
-  const { fullName, email, phone } = req.body;
+  const { fullName, email, phone, unitId } = req.body;
   if (!email || !fullName) {
     return res.json({ success: false, message: 'กรุณากรอกชื่อและอีเมลให้ครบ' });
+  }
+  const normalizedUnit = normalizeUnitId(unitId);
+  const unitIds = getUnitIds();
+  const validUnits = unitIds.house.concat(unitIds.flat);
+  if (!normalizedUnit || validUnits.indexOf(normalizedUnit) < 0) {
+    return res.json({ success: false, message: 'กรุณาเลือกเลขที่บ้าน/แฟลตให้ถูกต้อง' });
   }
   const requests = await db.getCollection('REGISTRATION_REQUESTS');
   const emailTrim = String(email).toLowerCase().trim();
@@ -137,6 +151,7 @@ router.post('/register-request', async (req, res) => {
     fullName: fullName || '',
     email: email || '',
     phone: phone || '',
+    unitId: normalizedUnit,
     status: 'pending',
     requestedAt: new Date().toISOString()
   };

@@ -337,12 +337,13 @@ timestamp | userId | action | detail
 | B | `fullName` | Text | ชื่อ-นามสกุล |
 | C | `email` | Text | อีเมล (Unique) |
 | D | `phone` | Text | เบอร์โทรศัพท์ |
-| E | `status` | Text | สถานะ: `pending`, `approved`, `rejected` |
-| F | `requestedAt` | Date | วันที่ส่งคำขอ |
+| E | `unitId` | Text | เลขที่บ้าน/แฟลต (`1`-`17`, `F1`-`F16`) |
+| F | `status` | Text | สถานะ: `pending`, `approved`, `rejected` |
+| G | `requestedAt` | Date | วันที่ส่งคำขอ |
 
 **ตัวอย่าง Header Row**:
 ```
-requestId | fullName | email | phone | status | requestedAt
+requestId | fullName | email | phone | unitId | status | requestedAt
 ```
 
 ---

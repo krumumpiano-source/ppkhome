@@ -395,12 +395,7 @@ router.post('/application-approve', requireAuth, requireRole(CONFIG.ROLES.ADMIN,
       return res.json({ success: false, message: 'ไม่พบหน่วยที่ระบุ' });
     }
     
-    // ตรวจสอบว่า unit ถูกใช้แล้วหรือไม่
     const users = await db.getCollection('USERS');
-    const existingUser = db.findInCollection(users, u => u.unitId === unitId && u.status === 'active');
-    if (existingUser) {
-      return res.json({ success: false, message: 'หน่วยนี้ถูกใช้แล้ว กรุณาเลือกหน่วยอื่น' });
-    }
     
     // อัปเดต unit status
     unit.status = 'occupied';
