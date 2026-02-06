@@ -143,7 +143,17 @@
             if (res.mustChangePassword) {
               window.location.href = 'resident/profile.html?change=1';
             } else {
-              window.location.href = 'resident/dashboard.html';
+              var redirectPath = 'resident/dashboard.html';
+              if (res.menuRegistry && res.allowedMenus && res.allowedMenus.length) {
+                var allowed = res.menuRegistry.filter(function(menu) {
+                  return res.allowedMenus.indexOf(menu.id) >= 0;
+                });
+                allowed.sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+                if (allowed.length > 0 && allowed[0].href) {
+                  redirectPath = allowed[0].href;
+                }
+              }
+              window.location.href = redirectPath;
             }
           }, 500);
         } else {

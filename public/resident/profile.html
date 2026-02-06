@@ -37,7 +37,8 @@
   <script src="../assets/js/api.js"></script>
   <script src="../assets/js/role-guard.js"></script>
   <script>
-    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (!Auth.requireLogin('../login.html')) return;
+    if (!RoleGuard.requireMenu('MENU_PROFILE_SETTINGS', '../index.html')) return;
     document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('resident/profile');
     document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
     API.run('getMyProfile', { sessionId: Auth.getSessionId() }, function (res) {

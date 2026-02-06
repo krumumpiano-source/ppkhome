@@ -56,13 +56,7 @@
   <script>
     if (!Auth.requireLogin('../../login.html')) return;
     
-    // Check role - use Auth.getRole() only, no hardcode
-    const role = Auth.getRole();
-    const allowedRoles = ['executive', 'admin', 'deputy_admin'];
-    if (allowedRoles.indexOf(role) < 0) {
-      window.location.href = '../../index.html';
-      return;
-    }
+    if (!RoleGuard.requireMenu('MENU_REPORTS', '../../index.html')) return;
     
     Layout.init('executive/dashboard');
     

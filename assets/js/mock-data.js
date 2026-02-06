@@ -14,6 +14,32 @@ var MOCK_DATA = {
     email: 'test@example.com',
     fullName: 'ผู้ทดสอบระบบ'
   },
+
+  menuRegistry: [
+    { id: 'MENU_BILLING', labelKey: 'nav.billing', href: 'resident/billing.html', order: 10, paths: ['resident/dashboard.html', 'resident/billing.html', 'resident/history.html'] },
+    { id: 'MENU_WATER_ENTRY', labelKey: 'nav.waterEntry', href: 'committee/water-meter.html', order: 20, paths: ['committee/water-meter.html', 'committee/task-status.html'] },
+    { id: 'MENU_ELECTRIC_ENTRY', labelKey: 'nav.electricEntry', href: 'committee/electric-bill.html', order: 30, paths: ['committee/electric-bill.html'] },
+    { id: 'MENU_MONTHLY_DISBURSEMENT', labelKey: 'nav.monthlyDisbursement', href: 'accounting/summary.html', order: 40, paths: ['accounting/summary.html'] },
+    { id: 'MENU_LEDGER', labelKey: 'nav.ledger', href: 'accounting/ledger.html', order: 50, paths: ['accounting/ledger.html'] },
+    { id: 'MENU_SLIP_REVIEW', labelKey: 'nav.slipReview', href: 'accounting/bank-check.html', order: 60, paths: ['accounting/bank-check.html'] },
+    { id: 'MENU_PROFILE_SETTINGS', labelKey: 'nav.profileSettings', href: 'resident/profile.html', order: 70, paths: ['resident/profile.html'] },
+    { id: 'MENU_ADMIN_SETTINGS', labelKey: 'nav.adminSettings', href: 'admin/permissions.html', order: 80, paths: ['admin/permissions.html', 'admin/users.html', 'admin/roles.html', 'admin/assets.html', 'admin/queue.html', 'admin/settings.html', 'admin/about-manager.html', 'admin/audit-log.html'] },
+    { id: 'MENU_RULES_FORMS', labelKey: 'nav.rulesForms', href: 'rules.html', order: 90, paths: ['rules.html', 'applicant/apply.html', 'applicant/queue-status.html'] },
+    { id: 'MENU_MANUAL', labelKey: 'nav.manual', href: 'manual.html', order: 100, paths: ['manual.html'] },
+    { id: 'MENU_REPORTS', labelKey: 'nav.reports', href: 'executive/dashboard.html', order: 110, paths: ['admin/reports.html', 'executive/dashboard.html', 'executive/reports.html'] }
+  ],
+  defaultRoleMenus: {
+    admin: ['MENU_BILLING', 'MENU_WATER_ENTRY', 'MENU_ELECTRIC_ENTRY', 'MENU_MONTHLY_DISBURSEMENT', 'MENU_LEDGER', 'MENU_SLIP_REVIEW', 'MENU_PROFILE_SETTINGS', 'MENU_ADMIN_SETTINGS', 'MENU_RULES_FORMS', 'MENU_MANUAL', 'MENU_REPORTS'],
+    deputy_admin: ['MENU_BILLING', 'MENU_WATER_ENTRY', 'MENU_ELECTRIC_ENTRY', 'MENU_MONTHLY_DISBURSEMENT', 'MENU_LEDGER', 'MENU_SLIP_REVIEW', 'MENU_PROFILE_SETTINGS', 'MENU_ADMIN_SETTINGS', 'MENU_RULES_FORMS', 'MENU_MANUAL', 'MENU_REPORTS'],
+    committee: ['MENU_BILLING', 'MENU_WATER_ENTRY', 'MENU_ELECTRIC_ENTRY', 'MENU_PROFILE_SETTINGS', 'MENU_RULES_FORMS', 'MENU_MANUAL'],
+    accounting: ['MENU_MONTHLY_DISBURSEMENT', 'MENU_LEDGER', 'MENU_SLIP_REVIEW', 'MENU_REPORTS', 'MENU_PROFILE_SETTINGS', 'MENU_RULES_FORMS', 'MENU_MANUAL'],
+    resident: ['MENU_BILLING', 'MENU_PROFILE_SETTINGS', 'MENU_RULES_FORMS', 'MENU_MANUAL'],
+    executive: ['MENU_REPORTS', 'MENU_PROFILE_SETTINGS', 'MENU_RULES_FORMS', 'MENU_MANUAL'],
+    applicant: ['MENU_RULES_FORMS', 'MENU_MANUAL'],
+    water_staff: ['MENU_WATER_ENTRY', 'MENU_PROFILE_SETTINGS', 'MENU_RULES_FORMS', 'MENU_MANUAL'],
+    electric_staff: ['MENU_ELECTRIC_ENTRY', 'MENU_PROFILE_SETTINGS', 'MENU_RULES_FORMS', 'MENU_MANUAL'],
+    external: ['MENU_RULES_FORMS', 'MENU_MANUAL']
+  },
   
   // Mock responses สำหรับแต่ละ API action
   responses: {
@@ -25,6 +51,9 @@ var MOCK_DATA = {
           userId: 'admin_001',
           role: 'admin',
           unitId: null,
+          allowedMenus: getMockAllowedMenus('admin'),
+          menuRegistry: MOCK_DATA.menuRegistry,
+          rolePreset: 'ADMIN',
           message: 'เข้าสู่ระบบสำเร็จ'
         };
       }
@@ -35,6 +64,9 @@ var MOCK_DATA = {
           userId: 'res_001',
           role: 'resident',
           unitId: '5',
+          allowedMenus: getMockAllowedMenus('resident'),
+          menuRegistry: MOCK_DATA.menuRegistry,
+          rolePreset: 'RESIDENT',
           message: 'เข้าสู่ระบบสำเร็จ'
         };
       }
@@ -45,6 +77,57 @@ var MOCK_DATA = {
       var stored = localStorage.getItem('mock_session');
       if (stored) return JSON.parse(stored);
       return null;
+    },
+
+    getMenuRegistry: function() {
+      return { success: true, menus: MOCK_DATA.menuRegistry };
+    },
+
+    getMyPermissions: function() {
+      var role = MOCK_DATA.session.role || 'resident';
+      return {
+        success: true,
+        allowedMenus: getMockAllowedMenus(role),
+        menuRegistry: MOCK_DATA.menuRegistry,
+        rolePreset: role.toUpperCase()
+      };
+    },
+
+    getUserMenuPermissions: function(params) {
+      var role = (params && params.role) || 'resident';
+      return {
+        success: true,
+        user: {
+          userId: params.userId || 'res_001',
+          email: 'resident@test.com',
+          fullName: 'ผู้ทดสอบระบบ',
+          role: role
+        },
+        rolePreset: role.toUpperCase(),
+        menus: buildMockMenuPermissions(role)
+      };
+    },
+
+    updateUserMenuPermissions: function(params) {
+      return { success: true, changes: [], rolePreset: 'RESIDENT' };
+    },
+
+    resetUserMenuPermissions: function(params) {
+      return { success: true, removed: [] };
+    },
+
+    getPermissionAudit: function(params) {
+      return {
+        success: true,
+        rows: [
+          {
+            when: new Date().toISOString(),
+            actorUserId: 'admin_001',
+            action: 'permission_update',
+            detail: { targetUserId: params.targetUserId || 'res_001', changes: [] }
+          }
+        ]
+      };
     },
     
     getBillingForUnit: function(params) {
@@ -375,6 +458,25 @@ var MOCK_DATA = {
     }
   }
 };
+
+function getMockAllowedMenus(role) {
+  return (MOCK_DATA.defaultRoleMenus[role] || []).slice();
+}
+
+function buildMockMenuPermissions(role) {
+  var allowed = getMockAllowedMenus(role);
+  return MOCK_DATA.menuRegistry.map(function(menu) {
+    var isAllowed = allowed.indexOf(menu.id) >= 0;
+    return {
+      id: menu.id,
+      labelKey: menu.labelKey,
+      href: menu.href,
+      defaultAllowed: isAllowed,
+      allowed: isAllowed,
+      overridden: false
+    };
+  });
+}
 
 // Helper: ตรวจสอบว่าเป็น offline mode หรือไม่
 function isOfflineMode() {

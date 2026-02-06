@@ -41,8 +41,8 @@
   <script src="../assets/js/role-guard.js"></script>
   <script src="../assets/js/water-report.js"></script>
   <script>
-    if (!Auth.isLoggedIn()) location.href = '../login.html';
-    if (Auth.getRole() !== 'committee' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    if (!Auth.requireLogin('../login.html')) return;
+    if (!RoleGuard.requireMenu('MENU_WATER_ENTRY', '../index.html')) return;
     document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('committee/water');
     document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
     document.getElementById('unitId').addEventListener('blur', function () {

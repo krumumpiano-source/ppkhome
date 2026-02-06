@@ -16,7 +16,8 @@ const SHEETS = {
   ABOUT_CONTENT: 'AboutContent',
   AUDIT_LOG: 'AuditLog',
   REGISTRATION_REQUESTS: 'RegistrationRequests',
-  REPAIR_REQUESTS: 'RepairRequests'
+  REPAIR_REQUESTS: 'RepairRequests',
+  USER_MENU_PERMISSIONS: 'UserMenuPermissions'
 };
 
 let authClient = null;

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n-title="nav.rulesForms">ระเบียบ / แบบฟอร์ม</title>
+  
+  <!-- Tailwind (Offline-first) -->
+  <link rel="stylesheet" href="assets/css/tailwind-inline.css" />
+  <script>
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+  
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/i18n-modern.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/role-guard.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/ui-components.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+  
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2" data-i18n="nav.rulesForms">ระเบียบ / แบบฟอร์ม</h1>
+      <p class="text-gray-600">รวมระเบียบและแบบฟอร์มที่เกี่ยวข้องกับการพักอาศัย</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-3">ระเบียบหลัก</h2>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>การแจ้งซ่อมและการขอปรับปรุงต้องผ่านแบบฟอร์มที่กำหนด</li>
+        <li>การย้ายออก/คืนที่พัก กรุณาแจ้งล่วงหน้าตามระยะเวลาที่กำหนด</li>
+        <li>การใช้งานพื้นที่ส่วนกลางต้องเคารพสิทธิ์ของผู้พักอาศัยอื่น</li>
+      </ul>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-3">แบบฟอร์มที่เกี่ยวข้อง</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="font-medium text-gray-900 mb-1">แบบฟอร์มแจ้งซ่อม</h3>
+          <p class="text-sm text-gray-600">ใช้สำหรับแจ้งซ่อม/ปรับปรุง/ต่อเติม</p>
+        </div>
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="font-medium text-gray-900 mb-1">แบบฟอร์มย้ายออก/คืน</h3>
+          <p class="text-sm text-gray-600">ใช้สำหรับแจ้งย้ายออกหรือคืนที่พัก</p>
+        </div>
+      </div>
+      <p class="text-sm text-gray-500 mt-4">หมายเหตุ: ไฟล์/ลิงก์จริงสามารถเพิ่มได้ภายหลังผ่านระบบแอดมิน</p>
+    </div>
+  </main>
+  
+  <script>
+    if (!Auth.requireLogin('login.html')) return;
+    if (!RoleGuard.requireMenu('MENU_RULES_FORMS', 'index.html')) return;
+    Layout.init('rules.html');
+  </script>
+</body>
+</html>

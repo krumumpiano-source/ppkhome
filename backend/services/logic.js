@@ -13,7 +13,10 @@ const CONFIG = {
     ADMIN: 'admin',
     DEPUTY_ADMIN: 'deputy_admin',
     EXECUTIVE: 'executive',
-    APPLICANT: 'applicant'
+    APPLICANT: 'applicant',
+    WATER_STAFF: 'water_staff',
+    ELECTRIC_STAFF: 'electric_staff',
+    EXTERNAL: 'external'
   },
   DEFAULT_WATER_RATE: 9,
   DEFAULT_VACANT_METER_FEE: 9,

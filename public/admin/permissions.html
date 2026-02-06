@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n-title="nav.adminSettings">ตั้งค่าแอดมิน</title>
+  
+  <!-- Tailwind CSS - Use inline CSS for offline mode -->
+  <link rel="stylesheet" href="../../assets/css/tailwind-inline.css">
+  <script>
+    if (window.location.protocol === 'file:' || !navigator.onLine) {
+    } else {
+      var script = document.createElement('script');
+      script.src = 'https://cdn.tailwindcss.com';
+      script.onerror = function() {};
+      document.head.appendChild(script);
+    }
+  </script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Sarabun', 'Segoe UI', Tahoma, sans-serif; }
+  </style>
+  
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/mock-data.js"></script>
+  <script src="../../assets/js/i18n-modern.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/role-guard.js"></script>
+  <script src="../../assets/js/layout.js"></script>
+  <script src="../../assets/js/ui-components.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+  
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2" data-i18n="nav.adminSettings">ตั้งค่าแอดมิน</h1>
+      <p class="text-gray-600">จัดการสิทธิ์เมนูรายผู้ใช้ และดูประวัติการเปลี่ยนแปลง</p>
+    </div>
+    
+    <div id="alert" class="hidden mb-4"></div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">เลือกผู้ใช้</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ผู้ใช้</label>
+          <select id="user-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">กำลังโหลด...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">บทบาทหลัก</label>
+          <div id="user-role" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">-</div>
+        </div>
+      </div>
+      <div class="mt-4 text-sm text-gray-500" id="user-info">เลือกผู้ใช้เพื่อแสดงสิทธิ์เมนู</div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">เครื่องมือแอดมิน</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+        <a href="users.html" class="border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-50">จัดการผู้ใช้</a>
+        <a href="assets.html" class="border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-50">จัดการบ้านพัก/แฟลต</a>
+        <a href="queue.html" class="border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-50">คิวคำร้อง</a>
+        <a href="settings.html" class="border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-50">ตั้งค่าระบบ</a>
+        <a href="about-manager.html" class="border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-50">จัดการหน้าเกี่ยวกับ</a>
+        <a href="audit-log.html" class="border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-50">Audit Log</a>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">สิทธิ์เมนู</h2>
+        <div class="flex gap-2">
+          <button id="btn-reset" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+            รีเซ็ตตามบทบาท
+          </button>
+          <button id="btn-save" class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+            บันทึกสิทธิ์
+          </button>
+        </div>
+      </div>
+      <div id="menus-list" class="space-y-3">
+        <div class="text-center text-gray-500 py-6">กรุณาเลือกผู้ใช้</div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Audit Log</h2>
+      <div id="audit-list" class="space-y-3 text-sm text-gray-700">
+        <div class="text-center text-gray-500 py-6">กรุณาเลือกผู้ใช้</div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    if (!Auth.requireLogin('../../login.html')) return;
+    if (!RoleGuard.requireMenu('MENU_ADMIN_SETTINGS', '../../index.html')) return;
+    Layout.init('admin/permissions.html');
+    
+    var currentUserId = '';
+    var currentMenus = [];
+    
+    function showAlert(message, type) {
+      var alertEl = document.getElementById('alert');
+      alertEl.className = type === 'success'
+        ? 'bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg'
+        : 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg';
+      alertEl.textContent = message;
+      alertEl.classList.remove('hidden');
+      setTimeout(function() {
+        alertEl.classList.add('hidden');
+      }, 4000);
+    }
+    
+    function renderMenus(menus) {
+      var container = document.getElementById('menus-list');
+      currentMenus = menus || [];
+      if (!currentMenus.length) {
+        container.innerHTML = '<div class="text-center text-gray-500 py-6">ไม่พบเมนู</div>';
+        return;
+      }
+      var html = '';
+      currentMenus.forEach(function(menu) {
+        var label = (typeof I18N !== 'undefined' && typeof I18N.t === 'function')
+          ? I18N.t(menu.labelKey)
+          : menu.labelKey;
+        var statusLabel = menu.overridden
+          ? 'Override'
+          : (menu.defaultAllowed ? 'Default: ON' : 'Default: OFF');
+        var statusClass = menu.overridden ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600';
+        html += '<div class="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3">' +
+          '<div>' +
+          '<div class="font-medium text-gray-900">' + escapeHtml(label) + '</div>' +
+          '<div class="text-xs mt-1 inline-block px-2 py-1 rounded ' + statusClass + '">' + statusLabel + '</div>' +
+          '</div>' +
+          '<label class="inline-flex items-center gap-2">' +
+          '<input type="checkbox" class="menu-toggle h-5 w-5 text-blue-600" data-menu-id="' + escapeHtml(menu.id) + '"' + (menu.allowed ? ' checked' : '') + '>' +
+          '<span class="text-sm text-gray-600">อนุญาต</span>' +
+          '</label>' +
+          '</div>';
+      });
+      container.innerHTML = html;
+    }
+    
+    function loadAudit(userId) {
+      var list = document.getElementById('audit-list');
+      list.innerHTML = '<div class="text-center text-gray-500 py-6">กำลังโหลด...</div>';
+      API.run('getPermissionAudit', { sessionId: Auth.getSessionId(), targetUserId: userId, limit: 50 }, function(res) {
+        if (!res.success || !res.rows || res.rows.length === 0) {
+          list.innerHTML = '<div class="text-center text-gray-500 py-6">ไม่มีข้อมูล</div>';
+          return;
+        }
+        var html = '';
+        res.rows.forEach(function(row) {
+          var when = row.when ? new Date(row.when).toLocaleString('th-TH') : '-';
+          var action = row.action === 'permission_reset' ? 'รีเซ็ตสิทธิ์' : 'แก้ไขสิทธิ์';
+          html += '<div class="border border-gray-200 rounded-lg px-4 py-3">' +
+            '<div class="text-sm text-gray-900 font-medium">' + action + '</div>' +
+            '<div class="text-xs text-gray-500 mt-1">โดย: ' + escapeHtml(row.actorUserId || '-') + ' · ' + escapeHtml(when) + '</div>' +
+            '</div>';
+        });
+        list.innerHTML = html;
+      });
+    }
+    
+    function loadUserPermissions(userId) {
+      if (!userId) return;
+      document.getElementById('menus-list').innerHTML = '<div class="text-center text-gray-500 py-6">กำลังโหลด...</div>';
+      API.run('getUserMenuPermissions', { sessionId: Auth.getSessionId(), userId: userId }, function(res) {
+        if (!res.success) {
+          showAlert(res.message || 'ไม่สามารถโหลดข้อมูลสิทธิ์ได้', 'error');
+          return;
+        }
+        currentUserId = userId;
+        document.getElementById('user-role').textContent = res.rolePreset || (res.user && res.user.role) || '-';
+        document.getElementById('user-info').textContent = (res.user && (res.user.fullName || res.user.email)) ? ('ผู้ใช้: ' + (res.user.fullName || res.user.email)) : 'ผู้ใช้ที่เลือก';
+        renderMenus(res.menus || []);
+        loadAudit(userId);
+      });
+    }
+    
+    function loadUsers() {
+      API.run('listUsers', { sessionId: Auth.getSessionId() }, function(res) {
+        var select = document.getElementById('user-select');
+        if (!res.success || !res.users || !res.users.length) {
+          select.innerHTML = '<option value="">ไม่มีผู้ใช้</option>';
+          return;
+        }
+        var html = '<option value="">เลือกผู้ใช้</option>';
+        res.users.forEach(function(user) {
+          var label = (user.fullName || user.email || user.userId) + ' (' + (user.role || '-') + ')';
+          html += '<option value="' + escapeHtml(user.userId) + '">' + escapeHtml(label) + '</option>';
+        });
+        select.innerHTML = html;
+      });
+    }
+    
+    document.getElementById('user-select').addEventListener('change', function() {
+      var userId = this.value;
+      currentUserId = userId || '';
+      if (!userId) {
+        renderMenus([]);
+        document.getElementById('user-role').textContent = '-';
+        document.getElementById('user-info').textContent = 'เลือกผู้ใช้เพื่อแสดงสิทธิ์เมนู';
+        document.getElementById('audit-list').innerHTML = '<div class="text-center text-gray-500 py-6">กรุณาเลือกผู้ใช้</div>';
+        return;
+      }
+      loadUserPermissions(userId);
+    });
+    
+    document.getElementById('btn-save').addEventListener('click', function() {
+      if (!currentUserId) {
+        showAlert('กรุณาเลือกผู้ใช้ก่อน', 'error');
+        return;
+      }
+      var permissions = {};
+      var toggles = document.querySelectorAll('.menu-toggle');
+      toggles.forEach(function(toggle) {
+        var menuId = toggle.getAttribute('data-menu-id');
+        permissions[menuId] = toggle.checked;
+      });
+      API.run('updateUserMenuPermissions', {
+        sessionId: Auth.getSessionId(),
+        userId: currentUserId,
+        permissions: permissions
+      }, function(res) {
+        if (res.success) {
+          showAlert('บันทึกสิทธิ์เรียบร้อย', 'success');
+          loadUserPermissions(currentUserId);
+        } else {
+          showAlert(res.message || 'ไม่สามารถบันทึกสิทธิ์ได้', 'error');
+        }
+      });
+    });
+    
+    document.getElementById('btn-reset').addEventListener('click', function() {
+      if (!currentUserId) {
+        showAlert('กรุณาเลือกผู้ใช้ก่อน', 'error');
+        return;
+      }
+      if (!confirm('ยืนยันการรีเซ็ตสิทธิ์ให้กลับค่าเริ่มต้นของบทบาท?')) return;
+      API.run('resetUserMenuPermissions', {
+        sessionId: Auth.getSessionId(),
+        userId: currentUserId
+      }, function(res) {
+        if (res.success) {
+          showAlert('รีเซ็ตสิทธิ์เรียบร้อย', 'success');
+          loadUserPermissions(currentUserId);
+        } else {
+          showAlert(res.message || 'ไม่สามารถรีเซ็ตสิทธิ์ได้', 'error');
+        }
+      });
+    });
+    
+    loadUsers();
+  </script>
+</body>
+</html>

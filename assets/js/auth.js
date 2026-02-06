@@ -14,6 +14,15 @@ var Auth = {
       sessionStorage.setItem(this.KEY + '_role', data.role || '');
       sessionStorage.setItem(this.KEY + '_userId', data.userId || '');
       sessionStorage.setItem(this.KEY + '_unitId', data.unitId || '');
+      if (data.allowedMenus) {
+        sessionStorage.setItem(this.KEY + '_allowedMenus', JSON.stringify(data.allowedMenus));
+      }
+      if (data.menuRegistry) {
+        sessionStorage.setItem(this.KEY + '_menuRegistry', JSON.stringify(data.menuRegistry));
+      }
+      if (data.rolePreset) {
+        sessionStorage.setItem(this.KEY + '_rolePreset', data.rolePreset || '');
+      }
     } catch (e) {}
   },
   clear: function () {
@@ -22,18 +31,40 @@ var Auth = {
       sessionStorage.removeItem(this.KEY + '_role');
       sessionStorage.removeItem(this.KEY + '_userId');
       sessionStorage.removeItem(this.KEY + '_unitId');
+      sessionStorage.removeItem(this.KEY + '_allowedMenus');
+      sessionStorage.removeItem(this.KEY + '_menuRegistry');
+      sessionStorage.removeItem(this.KEY + '_rolePreset');
     } catch (e) {}
   },
   getRole: function () { return sessionStorage.getItem(this.KEY + '_role') || ''; },
   getUserId: function () { return sessionStorage.getItem(this.KEY + '_userId') || ''; },
   getUnitId: function () { return sessionStorage.getItem(this.KEY + '_unitId') || ''; },
+  getAllowedMenus: function () {
+    try {
+      var raw = sessionStorage.getItem(this.KEY + '_allowedMenus');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+  getMenuRegistry: function () {
+    try {
+      var raw = sessionStorage.getItem(this.KEY + '_menuRegistry');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+  getRolePreset: function () { return sessionStorage.getItem(this.KEY + '_rolePreset') || ''; },
   getUser: function () {
     try {
       return {
         userId: this.getUserId(),
         role: this.getRole(),
         unitId: this.getUnitId(),
-        sessionId: this.getSessionId()
+        sessionId: this.getSessionId(),
+        allowedMenus: this.getAllowedMenus(),
+        rolePreset: this.getRolePreset()
       };
     } catch (e) {
       return null;
