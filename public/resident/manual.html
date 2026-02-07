@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>คู่มือการใช้งานโปรแกรม - ระบบบ้านพักครู</title>
+
+  <link rel="stylesheet" href="../../assets/css/tailwind-inline.css" />
+  <script>
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+
+  <script>
+    window.API_BASE_URL = 'https://your-app.onrender.com';
+  </script>
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/mock-data.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/role-guard.js"></script>
+  <script src="../../assets/js/layout.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">คู่มือการใช้งานโปรแกรม</h1>
+      <p class="text-gray-600">ขั้นตอนหลักสำหรับผู้พักอาศัยในการใช้งานระบบบ้านพักครู</p>
+    </div>
+
+    <div class="space-y-4">
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">1. เข้าสู่ระบบ</h2>
+        <p class="text-gray-700">ใช้บัญชีอีเมลและรหัสผ่านที่ได้รับจากเจ้าหน้าที่ หากระบบแจ้งให้เปลี่ยนรหัสผ่าน กรุณาดำเนินการทันที</p>
+      </section>
+
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">2. ดูแจ้งยอดล่าสุด</h2>
+        <p class="text-gray-700">หน้าแรกจะแสดงยอดชำระล่าสุดและยอดชำระก่อนหน้า 1 เดือน พร้อมปุ่มส่งสลิปยืนยันการโอนเงิน</p>
+      </section>
+
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">3. ส่งสลิปยืนยันการโอนเงิน</h2>
+        <ul class="list-disc list-inside text-gray-700 space-y-1">
+          <li>กรอกจำนวนเงินที่โอนและแนบสลิป (ลิงก์หรือ Base64)</li>
+          <li>ตรวจสอบข้อมูลก่อนกดส่งหลักฐาน</li>
+          <li>สถานะจะเปลี่ยนเป็นรอตรวจสอบเมื่อส่งสำเร็จ</li>
+        </ul>
+      </section>
+
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">4. ตรวจสอบประวัติการชำระ</h2>
+        <p class="text-gray-700">เมนูประวัติการชำระจะแสดงรายการชำระทั้งหมดและสถานะการชำระในแต่ละเดือน</p>
+      </section>
+
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">5. ส่งคำร้องย้าย/คืนบ้านพัก</h2>
+        <p class="text-gray-700">ใช้เมนูคำร้องเพื่อย้ายห้อง/ย้ายบ้าน หรือแจ้งคืนบ้านพัก โดยต้องยินยอม PDPA ก่อนส่งคำร้อง</p>
+      </section>
+
+      <section class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-blue-900 mb-3">6. การคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h2>
+        <p class="text-blue-900">ระบบจะเก็บข้อมูลเฉพาะที่จำเป็นต่อการบริหารบ้านพักครู และให้สิทธิ์ผู้พักอาศัยในการตรวจสอบหรือแก้ไขข้อมูลส่วนบุคคล</p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    if (!Auth.requireLogin('../../login.html')) return;
+    Layout.init('resident/manual.html');
+  </script>
+</body>
+</html>

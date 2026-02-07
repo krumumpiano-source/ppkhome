@@ -34,7 +34,10 @@ var RoleGuard = {
           about: 'เกี่ยวกับบ้านพักครู',
           dashboard: 'แดชบอร์ด',
           billing: 'แจ้งยอด & ส่งสลิป',
-          history: 'ประวัติการชำระ',
+        history: 'ประวัติการชำระ',
+        requests: 'คำร้องย้าย/คืนบ้านพัก',
+        regulations: 'ระเบียบของพันธะโค',
+        manual: 'คู่มือการใช้งานโปรแกรม',
           profile: 'ข้อมูลส่วนตัว',
           waterMeter: 'บันทึกมิเตอร์น้ำ',
           electricBill: 'บันทึกค่าไฟ',
@@ -60,7 +63,10 @@ var RoleGuard = {
           about: 'About Teacher Housing',
           dashboard: 'Dashboard',
           billing: 'Submit Payment',
-          history: 'Payment History',
+        history: 'Payment History',
+        requests: 'Move/Return Requests',
+        regulations: 'Housing Regulations',
+        manual: 'User Manual',
           profile: 'Profile',
           waterMeter: 'Record Water Meter',
           electricBill: 'Record Electricity',
@@ -91,6 +97,9 @@ var RoleGuard = {
       dashboard: getLabel('dashboard'),
       billing: getLabel('billing'),
       history: getLabel('history'),
+      requests: getLabel('requests'),
+      regulations: getLabel('regulations'),
+      manual: getLabel('manual'),
       profile: getLabel('profile'),
       waterMeter: getLabel('waterMeter'),
       electricBill: getLabel('electricBill'),
@@ -115,8 +124,10 @@ var RoleGuard = {
     items.push({ href: 'index.html', label: t.about });
     if (r === ROLES.resident || r === ROLES.committee || r === ROLES.accounting) {
       items.push({ href: 'resident/dashboard.html', label: t.dashboard });
-      items.push({ href: 'resident/billing.html', label: t.billing });
       items.push({ href: 'resident/history.html', label: t.history });
+      items.push({ href: 'resident/requests.html', label: t.requests });
+      items.push({ href: 'resident/regulations.html', label: t.regulations });
+      items.push({ href: 'resident/manual.html', label: t.manual });
       items.push({ href: 'resident/profile.html', label: t.profile });
     }
     if (r === ROLES.committee) {

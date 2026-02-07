@@ -1,83 +1,253 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ข้อมูลส่วนตัว - ระบบบ้านพักครู</title>
-  <link rel="stylesheet" href="../assets/css/app.css">
-  <script src="../assets/js/css-fix.js"></script>
-</head>
-<body>
-  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
-  <nav id="main-nav"></nav>
-  <main class="main container">
-    <div class="card">
-      <h2>ข้อมูลส่วนตัว</h2>
-      <div id="alert" class="alert hide"></div>
-      <div id="profile"></div>
-      <form id="form" class="hide">
-        <div class="form-group"><label>ชื่อ–นามสกุล</label><input type="text" id="fullName"></div>
-        <div class="form-group"><label>อีเมล</label><input type="email" id="email"></div>
-        <div class="form-group"><label>เบอร์โทร</label><input type="text" id="phone"></div>
-        <div class="form-group"><label>สมาชิกที่อาศัยร่วม</label><textarea id="householdMembers" rows="2"></textarea></div>
-        <button type="submit" class="btn">บันทึก</button>
-      </form>
-      <hr>
-      <h3>เปลี่ยนรหัสผ่าน</h3>
-      <form id="formPw">
-        <div class="form-group"><label>รหัสผ่านเดิม</label><input type="password" id="oldPassword" required></div>
-        <div class="form-group"><label>รหัสผ่านใหม่</label><input type="password" id="newPassword" required minlength="8"></div>
-        <button type="submit" class="btn">เปลี่ยนรหัสผ่าน</button>
-      </form>
-    </div>
-  </main>
-  <script src="../assets/js/utils.js"></script>
-  <script src="../assets/js/auth.js"></script>
-  <script src="../assets/js/mock-data.js"></script>
-  <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/role-guard.js"></script>
+
+  <link rel="stylesheet" href="../../assets/css/tailwind-inline.css" />
   <script>
-    if (!Auth.isLoggedIn()) location.href = '../login.html';
-    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('resident/profile');
-    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
-    API.run('getMyProfile', { sessionId: Auth.getSessionId() }, function (res) {
-      if (!res.success) return;
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+
+  <script>
+    window.API_BASE_URL = 'https://your-app.onrender.com';
+  </script>
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/mock-data.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/role-guard.js"></script>
+  <script src="../../assets/js/layout.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">ตั้งค่าส่วนตัว</h1>
+      <p class="text-gray-600">จัดการข้อมูลส่วนบุคคลและข้อมูลตามทะเบียนบ้าน</p>
+    </div>
+
+    <div id="alert" class="hidden mb-6"></div>
+
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
+        <h2 class="text-xl font-semibold text-gray-900">ข้อมูลบัญชี</h2>
+        <p class="text-sm text-gray-500" id="profile-meta"></p>
+      </div>
+
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900 mb-6">
+        ข้อมูลของท่านจะถูกใช้เพื่อการบริหารบ้านพักครูเท่านั้น และจัดเก็บตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+      </div>
+
+      <form id="profile-form" class="space-y-6 hidden">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">ข้อมูลส่วนบุคคล</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล</label>
+              <input type="text" id="fullName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">วันเดือนปีเกิด</label>
+              <input type="date" id="birthDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">กลุ่มสาระการเรียนรู้ที่ทำงานอยู่</label>
+              <input type="text" id="subjectGroup" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">ข้อมูลติดต่อ</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+              <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">เบอร์โทร</label>
+              <input type="text" id="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">ผู้ร่วมพักอาศัย</h3>
+          <textarea id="householdMembers" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="ระบุชื่อ-นามสกุล และความสัมพันธ์"></textarea>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">ข้อมูลตามทะเบียนบ้านโดยละเอียด</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">เลขทะเบียนบ้าน</label>
+              <input type="text" id="houseRegNo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">บ้านเลขที่</label>
+              <input type="text" id="houseNo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">หมู่บ้าน/อาคาร</label>
+              <input type="text" id="villageName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">หมู่</label>
+              <input type="text" id="moo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">ซอย</label>
+              <input type="text" id="soi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">ถนน</label>
+              <input type="text" id="road" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">ตำบล/แขวง</label>
+              <input type="text" id="subdistrict" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">อำเภอ/เขต</label>
+              <input type="text" id="district" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">จังหวัด</label>
+              <input type="text" id="province" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">รหัสไปรษณีย์</label>
+              <input type="text" id="postalCode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-start gap-2">
+            <input type="checkbox" id="pdpa-consent" class="mt-1">
+            <label for="pdpa-consent" class="text-sm text-blue-900">
+              ยินยอมให้หน่วยงานเก็บ ใช้ และเปิดเผยข้อมูลตามวัตถุประสงค์ในการบริหารบ้านพักครู (PDPA)
+            </label>
+          </div>
+          <p class="text-xs text-blue-800 mt-2" id="pdpa-consent-at"></p>
+        </div>
+
+        <div>
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700">บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">เปลี่ยนรหัสผ่าน</h2>
+      <form id="password-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่านเดิม</label>
+          <input type="password" id="oldPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่านใหม่</label>
+          <input type="password" id="newPassword" minlength="8" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+        </div>
+        <button type="submit" class="bg-gray-900 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-800">เปลี่ยนรหัสผ่าน</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    if (!Auth.requireLogin('../../login.html')) return;
+    Layout.init('resident/profile.html');
+
+    var sessionId = Auth.getSessionId();
+    var pdpaConsentAt = '';
+
+    function setAlert(message, success) {
+      var el = document.getElementById('alert');
+      el.className = success
+        ? 'bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg'
+        : 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg';
+      el.textContent = message;
+      el.classList.remove('hidden');
+    }
+
+    API.run('getMyProfile', { sessionId: sessionId }, function(res) {
+      if (!res.success || !res.profile) return;
       var p = res.profile;
-      document.getElementById('profile').innerHTML = '<p>หน่วย: ' + escapeHtml(p.unitId || '-') + ' · บทบาท: ' + escapeHtml(p.role || '') + '</p>';
+      document.getElementById('profile-meta').textContent = 'หน่วย: ' + (p.unitId || '-') + ' · บทบาท: ' + (p.role || '-');
       document.getElementById('fullName').value = p.fullName || '';
+      document.getElementById('birthDate').value = p.birthDate || '';
+      document.getElementById('subjectGroup').value = p.subjectGroup || '';
       document.getElementById('email').value = p.email || '';
       document.getElementById('phone').value = p.phone || '';
       document.getElementById('householdMembers').value = p.householdMembers || '';
-      document.getElementById('form').classList.remove('hide');
+      document.getElementById('houseRegNo').value = p.houseRegNo || '';
+      document.getElementById('houseNo').value = p.houseNo || '';
+      document.getElementById('villageName').value = p.villageName || '';
+      document.getElementById('moo').value = p.moo || '';
+      document.getElementById('soi').value = p.soi || '';
+      document.getElementById('road').value = p.road || '';
+      document.getElementById('subdistrict').value = p.subdistrict || '';
+      document.getElementById('district').value = p.district || '';
+      document.getElementById('province').value = p.province || '';
+      document.getElementById('postalCode').value = p.postalCode || '';
+      var consentValue = p.pdpaConsent === true || String(p.pdpaConsent).toLowerCase() === 'true';
+      document.getElementById('pdpa-consent').checked = consentValue;
+      pdpaConsentAt = p.pdpaConsentAt || '';
+      if (pdpaConsentAt) {
+        document.getElementById('pdpa-consent-at').textContent = 'ยินยอมล่าสุดเมื่อ: ' + formatDate(pdpaConsentAt);
+      }
+      document.getElementById('profile-form').classList.remove('hidden');
     });
-    document.getElementById('form').addEventListener('submit', function (e) {
+
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
       e.preventDefault();
+      var consent = document.getElementById('pdpa-consent').checked;
+      if (!consent) {
+        setAlert('กรุณายินยอม PDPA ก่อนบันทึกข้อมูล', false);
+        return;
+      }
       API.run('updateMyProfile', {
-        sessionId: Auth.getSessionId(),
-        payload: JSON.stringify({
-          fullName: document.getElementById('fullName').value,
-          email: document.getElementById('email').value,
-          phone: document.getElementById('phone').value,
-          householdMembers: document.getElementById('householdMembers').value
-        })
-      }, function (res) {
-        var alertEl = document.getElementById('alert');
-        alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
-        alertEl.textContent = res.message;
-        alertEl.classList.remove('hide');
+        sessionId: sessionId,
+        fullName: document.getElementById('fullName').value.trim(),
+        birthDate: document.getElementById('birthDate').value,
+        subjectGroup: document.getElementById('subjectGroup').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        householdMembers: document.getElementById('householdMembers').value.trim(),
+        houseRegNo: document.getElementById('houseRegNo').value.trim(),
+        houseNo: document.getElementById('houseNo').value.trim(),
+        villageName: document.getElementById('villageName').value.trim(),
+        moo: document.getElementById('moo').value.trim(),
+        soi: document.getElementById('soi').value.trim(),
+        road: document.getElementById('road').value.trim(),
+        subdistrict: document.getElementById('subdistrict').value.trim(),
+        district: document.getElementById('district').value.trim(),
+        province: document.getElementById('province').value.trim(),
+        postalCode: document.getElementById('postalCode').value.trim(),
+        pdpaConsent: true,
+        pdpaConsentAt: pdpaConsentAt || new Date().toISOString()
+      }, function(res) {
+        setAlert(res.message || (res.success ? 'บันทึกเรียบร้อย' : 'ไม่สามารถบันทึกข้อมูลได้'), res.success);
       });
     });
-    document.getElementById('formPw').addEventListener('submit', function (e) {
+
+    document.getElementById('password-form').addEventListener('submit', function(e) {
       e.preventDefault();
       API.run('changePassword', {
-        sessionId: Auth.getSessionId(),
+        sessionId: sessionId,
         oldPassword: document.getElementById('oldPassword').value,
         newPassword: document.getElementById('newPassword').value
-      }, function (res) {
-        var alertEl = document.getElementById('alert');
-        alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
-        alertEl.textContent = res.message;
-        alertEl.classList.remove('hide');
+      }, function(res) {
+        setAlert(res.message || (res.success ? 'เปลี่ยนรหัสผ่านเรียบร้อย' : 'ไม่สามารถเปลี่ยนรหัสผ่านได้'), res.success);
       });
     });
   </script>

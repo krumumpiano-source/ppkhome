@@ -48,17 +48,22 @@ var MOCK_DATA = {
     },
     
     getBillingForUnit: function(params) {
+      var roundId = params.roundId || 'round_202501';
+      var isPrevious = roundId === 'round_202412';
+      var total = isPrevious ? 1600 : 1850;
       return {
         success: true,
-        round: { id: 'round_202501', month: 1, year: 2025, status: 'open' },
+        round: { id: roundId, month: isPrevious ? 12 : 1, year: isPrevious ? 2024 : 2025, status: 'open' },
         items: [
-          { type: 'water', amount: 450 },
-          { type: 'electric', amount: 1200 },
+          { type: 'water', amount: isPrevious ? 400 : 450 },
+          { type: 'electric', amount: isPrevious ? 1000 : 1200 },
           { type: 'common', amount: 200 }
         ],
-        total: 1850,
-        status: 'unpaid',
-        payment: null
+        total: total,
+        status: isPrevious ? 'paid' : 'unpaid',
+        payment: isPrevious ? { amount: total, date: '2024-12-10', verified: true } : null,
+        billingDate: isPrevious ? '2024-12-01' : '2025-01-01',
+        dueDate: isPrevious ? '2024-12-06' : '2025-01-06'
       };
     },
     
@@ -125,7 +130,22 @@ var MOCK_DATA = {
           phone: '0812345678',
           role: 'resident',
           unitId: '5',
-          status: 'active'
+          status: 'active',
+          householdMembers: 'คู่สมรส 1 คน',
+          birthDate: '1990-01-01',
+          subjectGroup: 'คณิตศาสตร์',
+          houseRegNo: '123456789',
+          houseNo: '99/9',
+          villageName: 'บ้านพักครู',
+          moo: '5',
+          soi: 'สุขสันต์',
+          road: 'การศึกษา',
+          subdistrict: 'ในเมือง',
+          district: 'เมือง',
+          province: 'ขอนแก่น',
+          postalCode: '40000',
+          pdpaConsent: true,
+          pdpaConsentAt: '2025-01-01'
         }
       };
     },
@@ -324,6 +344,13 @@ var MOCK_DATA = {
       return {
         success: true,
         message: 'ส่งหลักฐานเรียบร้อย รอการตรวจสอบ'
+      };
+    },
+
+    submitResidentRequest: function(params) {
+      return {
+        success: true,
+        message: 'ส่งคำร้องเรียบร้อย'
       };
     },
     

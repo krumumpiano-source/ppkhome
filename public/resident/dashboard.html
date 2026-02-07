@@ -42,15 +42,16 @@
       <p class="text-gray-600" id="welcome-message"></p>
     </div>
     
-    <!-- Stats Cards -->
+    <!-- Billing Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Current Bill -->
+      <!-- Latest Bill -->
       <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
-        <div class="flex items-center justify-between">
+        <div class="flex items-start justify-between">
           <div>
-            <p class="text-sm text-gray-500 mb-1">ยอดเดือนปัจจุบัน</p>
-            <p class="text-2xl font-bold text-gray-900" id="current-bill-amount">-</p>
-            <p class="text-xs text-gray-400 mt-1" id="current-bill-round"></p>
+            <p class="text-sm text-gray-500 mb-1">ยอดชำระล่าสุด</p>
+            <p class="text-2xl font-bold text-gray-900" id="latest-bill-amount">-</p>
+            <p class="text-xs text-gray-400 mt-1" id="latest-bill-round"></p>
+            <p class="text-xs text-gray-400 mt-1" id="latest-bill-due"></p>
           </div>
           <div class="bg-blue-100 rounded-full p-3">
             <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,13 +59,31 @@
             </svg>
           </div>
         </div>
+        <div class="mt-4" id="latest-bill-action"></div>
       </div>
-      
+
+      <!-- Previous Bill -->
+      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-indigo-500">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm text-gray-500 mb-1">ยอดชำระก่อนหน้า 1 เดือน</p>
+            <p class="text-2xl font-bold text-gray-900" id="previous-bill-amount">-</p>
+            <p class="text-xs text-gray-400 mt-1" id="previous-bill-round"></p>
+            <p class="text-xs text-gray-400 mt-1" id="previous-bill-due"></p>
+          </div>
+          <div class="bg-indigo-100 rounded-full p-3">
+            <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
       <!-- Payment Status -->
       <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-500 mb-1">สถานะการชำระ</p>
+            <p class="text-sm text-gray-500 mb-1">สถานะการชำระล่าสุด</p>
             <p class="text-2xl font-bold text-gray-900" id="payment-status-text">-</p>
             <p class="text-xs text-gray-400 mt-1" id="payment-status-detail"></p>
           </div>
@@ -75,7 +94,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Unit Info -->
       <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
         <div class="flex items-center justify-between">
@@ -87,21 +106,6 @@
           <div class="bg-purple-100 rounded-full p-3">
             <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Quick Actions -->
-      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500 mb-1">เมนูด่วน</p>
-            <a href="billing.html" class="text-lg font-semibold text-orange-600 hover:text-orange-700">แจ้งยอด</a>
-          </div>
-          <div class="bg-orange-100 rounded-full p-3">
-            <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
         </div>
@@ -140,89 +144,164 @@
   <script>
     if (!Auth.requireLogin('../../login.html')) return;
     Layout.init('resident/dashboard.html');
-    
-    // Load user profile
-    const user = Auth.getUser();
-    if (user) {
-      document.getElementById('welcome-message').textContent = 'ยินดีต้อนรับ, ' + (user.fullName || user.email || 'ผู้ใช้');
+
+    var sessionId = Auth.getSessionId();
+    var unitId = Auth.getUnitId();
+    var latestStatus = null;
+    var previousStatus = null;
+    var latestBilling = null;
+    var previousBilling = null;
+
+    function formatMoney(amount) {
+      if (amount === null || amount === undefined || isNaN(amount)) return '-';
+      return '฿' + Number(amount).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-    
-    // Load billing data
-    API.run('getBillingForUnit', { sessionId: Auth.getSessionId() }, function(res) {
-      if (res.success && res.billing) {
-        const billing = res.billing;
-        document.getElementById('current-bill-amount').textContent = 
-          billing.total ? '฿' + parseFloat(billing.total).toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '-';
-        document.getElementById('current-bill-round').textContent = 
-          billing.roundId ? 'รอบ: ' + billing.roundId : '';
-      }
-    });
-    
-    // Load payment status
-    API.run('getMyPaymentStatusList', { sessionId: Auth.getSessionId() }, function(res) {
-      const container = document.getElementById('payment-status-list');
-      if (res.success && res.statuses && res.statuses.length > 0) {
-        const statuses = res.statuses;
-        const latest = statuses[0];
-        
-        // Update status card
-        let statusText = '-';
-        let statusDetail = '';
-        
-        if (latest.payment_status === 'PAID_ON_TIME') {
-          statusText = 'ชำระตรงเวลา';
-          statusDetail = 'ชำระแล้ว';
-        } else if (latest.payment_status === 'PAID_LATE') {
-          statusText = 'ชำระล่าช้า';
-          statusDetail = latest.late_days + ' วัน';
-        } else if (latest.payment_status === 'UNPAID') {
-          statusText = 'ยังไม่ชำระ';
-          statusDetail = 'ค้างชำระ';
-        }
-        
-        document.getElementById('payment-status-text').textContent = statusText;
-        document.getElementById('payment-status-detail').textContent = statusDetail;
-        
-        // Render status list
-        let html = '';
-        statuses.slice(0, 5).forEach(function(status) {
-          let icon = '⏰';
-          let bgColor = 'bg-gray-100';
-          if (status.payment_status === 'PAID_ON_TIME') {
-            icon = '✅';
-            bgColor = 'bg-green-100';
-          } else if (status.payment_status === 'PAID_LATE') {
-            icon = '⏰';
-            bgColor = 'bg-yellow-100';
-          } else if (status.payment_status === 'UNPAID') {
-            icon = '❌';
-            bgColor = 'bg-red-100';
-          }
-          
-          html += '<div class="flex items-center justify-between p-4 ' + bgColor + ' rounded-lg">' +
-            '<div class="flex items-center gap-3">' +
-            '<span class="text-2xl">' + icon + '</span>' +
-            '<div>' +
-            '<p class="font-medium text-gray-900">' + (status.roundId || '-') + '</p>' +
-            '<p class="text-sm text-gray-600">' + (status.billing_date || '-') + '</p>' +
-            '</div>' +
-            '</div>' +
-            '<div class="text-right">' +
-            '<p class="text-sm font-medium text-gray-900">' + (status.payment_status === 'UNPAID' ? 'ยังไม่ชำระ' : 'ชำระแล้ว') + '</p>' +
-            (status.late_days > 0 ? '<p class="text-xs text-gray-500">' + status.late_days + ' วัน</p>' : '') +
-            '</div>' +
-            '</div>';
-        });
-        container.innerHTML = html;
+
+    function setText(id, text) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function getStatusLabel(status) {
+      if (!status) return '-';
+      if (status.payment_status === 'PAID_ON_TIME') return 'ชำระตรงเวลา';
+      if (status.payment_status === 'PAID_LATE') return 'ชำระล่าช้า';
+      if (status.payment_status === 'UNPAID') return 'ยังไม่ชำระ';
+      return '-';
+    }
+
+    function getStatusDetail(status) {
+      if (!status) return '';
+      if (status.payment_status === 'PAID_LATE') return (status.late_days || 0) + ' วัน';
+      if (status.payment_status === 'UNPAID') return 'ค้างชำระ';
+      return 'ชำระแล้ว';
+    }
+
+    function renderBillingCards() {
+      if (latestStatus) {
+        setText('latest-bill-round', 'รอบเดือน: ' + latestStatus.round_month + '/' + latestStatus.round_year);
+        setText('latest-bill-due', 'ครบกำหนด: ' + formatDate(latestStatus.due_date));
       } else {
+        setText('latest-bill-round', 'รอบเดือน: -');
+        setText('latest-bill-due', '');
+      }
+      if (previousStatus) {
+        setText('previous-bill-round', 'รอบเดือน: ' + previousStatus.round_month + '/' + previousStatus.round_year);
+        setText('previous-bill-due', 'ครบกำหนด: ' + formatDate(previousStatus.due_date));
+      } else {
+        setText('previous-bill-round', 'รอบเดือน: -');
+        setText('previous-bill-due', '');
+      }
+
+      setText('latest-bill-amount', latestBilling && latestBilling.total !== undefined ? formatMoney(latestBilling.total) : '-');
+      setText('previous-bill-amount', previousBilling && previousBilling.total !== undefined ? formatMoney(previousBilling.total) : '-');
+
+      var actionEl = document.getElementById('latest-bill-action');
+      if (!actionEl) return;
+      if (!latestStatus) {
+        actionEl.innerHTML = '<span class="text-xs text-gray-400">ไม่มีข้อมูลรอบล่าสุด</span>';
+        return;
+      }
+      if (!unitId) {
+        actionEl.innerHTML = '<span class="text-xs text-gray-400">ยังไม่มีหน่วยที่พัก</span>';
+        return;
+      }
+      var href = 'billing.html?roundId=' + encodeURIComponent(latestStatus.roundId || '');
+      if (latestBilling && latestBilling.status === 'paid') {
+        actionEl.innerHTML = '<span class="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-gray-200 text-gray-600 rounded-lg">ชำระแล้ว</span>';
+      } else if (latestBilling && latestBilling.status === 'pending_check') {
+        actionEl.innerHTML = '<span class="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-lg">รอตรวจสอบ</span>';
+      } else {
+        actionEl.innerHTML = '<a href="' + href + '" class="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700">ส่งสลิปยืนยันการโอน</a>';
+      }
+    }
+
+    function renderStatusList(statuses) {
+      var container = document.getElementById('payment-status-list');
+      if (!container) return;
+      if (!statuses || statuses.length === 0) {
         container.innerHTML = '<div class="text-center py-8 text-gray-500">ไม่มีข้อมูล</div>';
+        return;
+      }
+      var html = '';
+      statuses.slice(0, 5).forEach(function(status) {
+        var icon = '⏰';
+        var bgColor = 'bg-gray-100';
+        if (status.payment_status === 'PAID_ON_TIME') {
+          icon = '✅';
+          bgColor = 'bg-green-100';
+        } else if (status.payment_status === 'PAID_LATE') {
+          icon = '⏰';
+          bgColor = 'bg-yellow-100';
+        } else if (status.payment_status === 'UNPAID') {
+          icon = '❌';
+          bgColor = 'bg-red-100';
+        }
+        html += '<div class="flex items-center justify-between p-4 ' + bgColor + ' rounded-lg">' +
+          '<div class="flex items-center gap-3">' +
+          '<span class="text-2xl">' + icon + '</span>' +
+          '<div>' +
+          '<p class="font-medium text-gray-900">รอบ ' + status.round_month + '/' + status.round_year + '</p>' +
+          '<p class="text-sm text-gray-600">ครบกำหนด: ' + formatDate(status.due_date) + '</p>' +
+          '</div>' +
+          '</div>' +
+          '<div class="text-right">' +
+          '<p class="text-sm font-medium text-gray-900">' + getStatusLabel(status) + '</p>' +
+          (status.late_days > 0 ? '<p class="text-xs text-gray-500">' + status.late_days + ' วัน</p>' : '') +
+          '</div>' +
+          '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function loadBillingForStatus(statusItem, setter) {
+      if (!statusItem || !unitId) {
+        setter(null);
+        renderBillingCards();
+        return;
+      }
+      API.run('getBillingForUnit', { sessionId: sessionId, unitId: unitId, roundId: statusItem.roundId }, function(res) {
+        if (res && res.success) {
+          setter(res);
+        } else {
+          setter(null);
+        }
+        renderBillingCards();
+      });
+    }
+
+    API.run('getMyProfile', { sessionId: sessionId }, function(res) {
+      if (res.success && res.profile) {
+        var name = res.profile.fullName || res.profile.email || 'ผู้ใช้';
+        document.getElementById('welcome-message').textContent = 'ยินดีต้อนรับ, ' + name;
+        if (res.profile.unitId) {
+          unitId = res.profile.unitId;
+          setText('unit-id', res.profile.unitId);
+          setText('unit-status', 'ผู้พักอาศัย');
+        }
       }
     });
-    
-    // Load unit info
-    if (user && user.unitId) {
-      document.getElementById('unit-id').textContent = user.unitId;
-      document.getElementById('unit-status').textContent = 'ผู้พักอาศัย';
+
+    API.run('getMyPaymentStatusList', { sessionId: sessionId }, function(res) {
+      if (res.success && res.items && res.items.length > 0) {
+        latestStatus = res.items[0];
+        previousStatus = res.items.length > 1 ? res.items[1] : null;
+        setText('payment-status-text', getStatusLabel(latestStatus));
+        setText('payment-status-detail', getStatusDetail(latestStatus));
+        renderStatusList(res.items);
+        loadBillingForStatus(latestStatus, function(value) { latestBilling = value; });
+        loadBillingForStatus(previousStatus, function(value) { previousBilling = value; });
+      } else {
+        setText('payment-status-text', '-');
+        setText('payment-status-detail', '');
+        renderStatusList([]);
+        renderBillingCards();
+      }
+    });
+
+    if (unitId) {
+      setText('unit-id', unitId);
+      setText('unit-status', 'ผู้พักอาศัย');
     }
   </script>
 </body>

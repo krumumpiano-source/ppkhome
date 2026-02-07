@@ -1,69 +1,135 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ประวัติการชำระ - ระบบบ้านพักครู</title>
-  <link rel="stylesheet" href="../assets/css/app.css">
-  <script src="../assets/js/css-fix.js"></script>
-</head>
-<body>
-  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
-  <nav id="main-nav"></nav>
-  <main class="main container">
-    <div class="card">
-      <h2>ประวัติการชำระของฉัน</h2>
-      <p class="text-muted payment-status-disclaimer">ระบบกำหนดให้ชำระภายใน 3 วันทำการหลังแจ้งยอด<br>ข้อมูลนี้แสดงเฉพาะของท่านเท่านั้น</p>
-      <div id="payment-status-list"></div>
-      <h3 class="section-sub">รายการชำระเงิน</h3>
-      <div id="list"></div>
-    </div>
-  </main>
-  <script src="../assets/js/utils.js"></script>
-  <script src="../assets/js/auth.js"></script>
-  <script src="../assets/js/mock-data.js"></script>
-  <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/role-guard.js"></script>
+
+  <link rel="stylesheet" href="../../assets/css/tailwind-inline.css" />
   <script>
-    if (!Auth.isLoggedIn()) location.href = '../login.html';
-    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('resident/history');
-    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+
+  <script>
+    window.API_BASE_URL = 'https://your-app.onrender.com';
+  </script>
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/mock-data.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/role-guard.js"></script>
+  <script src="../../assets/js/layout.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">ประวัติการชำระ</h1>
+      <p class="text-gray-600">ตรวจสอบสถานะการชำระเงินย้อนหลังและรายการโอนเงินของท่าน</p>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm text-blue-900">
+      ข้อมูลนี้แสดงเฉพาะของท่านเท่านั้น ระบบกำหนดให้ชำระภายใน 3 วันทำการหลังแจ้งยอด
+    </div>
+
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">สถานะการชำระรายเดือน</h2>
+      <div id="payment-status-table" class="overflow-x-auto text-sm text-gray-700"></div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">รายการโอน/ชำระเงิน</h2>
+      <div id="payment-history-table" class="overflow-x-auto text-sm text-gray-700"></div>
+    </section>
+  </main>
+
+  <script>
+    if (!Auth.requireLogin('../../login.html')) return;
+    Layout.init('resident/history.html');
+
+    var sessionId = Auth.getSessionId();
     var unitId = Auth.getUnitId();
+
+    function renderStatusTable(items) {
+      var el = document.getElementById('payment-status-table');
+      if (!items || items.length === 0) {
+        el.innerHTML = '<div class="text-gray-500">ยังไม่มีข้อมูลสถานะการชำระ</div>';
+        return;
+      }
+      var html = '<table class="min-w-full divide-y divide-gray-200">';
+      html += '<thead class="bg-gray-50"><tr>';
+      html += '<th class="px-4 py-3 text-left font-medium">รอบเดือน</th>';
+      html += '<th class="px-4 py-3 text-left font-medium">วันที่แจ้งยอด</th>';
+      html += '<th class="px-4 py-3 text-left font-medium">ครบกำหนด</th>';
+      html += '<th class="px-4 py-3 text-left font-medium">สถานะ</th>';
+      html += '<th class="px-4 py-3 text-left font-medium">วันที่ชำระ</th>';
+      html += '</tr></thead><tbody class="divide-y divide-gray-200">';
+      items.forEach(function(item) {
+        var label = '';
+        if (item.payment_status === 'PAID_ON_TIME') label = 'ชำระตรงเวลา';
+        else if (item.payment_status === 'PAID_LATE') label = 'ชำระล่าช้า ' + (item.late_days || 0) + ' วัน';
+        else label = 'ยังไม่ชำระ';
+        html += '<tr class="hover:bg-gray-50">';
+        html += '<td class="px-4 py-3">' + item.round_month + '/' + item.round_year + '</td>';
+        html += '<td class="px-4 py-3">' + formatDate(item.billing_date) + '</td>';
+        html += '<td class="px-4 py-3">' + formatDate(item.due_date) + '</td>';
+        html += '<td class="px-4 py-3">' + label + '</td>';
+        html += '<td class="px-4 py-3">' + (item.payment_date ? formatDate(item.payment_date) : '—') + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+
+    function renderHistoryTable(rows) {
+      var el = document.getElementById('payment-history-table');
+      if (!rows || rows.length === 0) {
+        el.innerHTML = '<div class="text-gray-500">ยังไม่มีประวัติการโอน/ชำระ</div>';
+        return;
+      }
+      var html = '<table class="min-w-full divide-y divide-gray-200">';
+      html += '<thead class="bg-gray-50"><tr>';
+      html += '<th class="px-4 py-3 text-left font-medium">รอบ</th>';
+      html += '<th class="px-4 py-3 text-left font-medium">จำนวน (บาท)</th>';
+      html += '<th class="px-4 py-3 text-left font-medium">วันที่โอน</th>';
+      html += '<th class="px-4 py-3 text-left font-medium">สถานะ</th>';
+      html += '</tr></thead><tbody class="divide-y divide-gray-200">';
+      rows.forEach(function(row) {
+        html += '<tr class="hover:bg-gray-50">';
+        html += '<td class="px-4 py-3">' + escapeHtml(row.roundId) + '</td>';
+        html += '<td class="px-4 py-3">' + formatNumber(row.amount) + '</td>';
+        html += '<td class="px-4 py-3">' + formatDate(row.date) + '</td>';
+        html += '<td class="px-4 py-3">' + (row.verified ? 'ตรวจแล้ว' : 'รอตรวจ') + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+
     if (!unitId) {
-      document.getElementById('list').innerHTML = '<p>ยังไม่มีหน่วยที่พัก</p>';
-      document.getElementById('payment-status-list').innerHTML = '';
+      renderStatusTable([]);
+      renderHistoryTable([]);
     } else {
-      API.run('getMyPaymentStatusList', { sessionId: Auth.getSessionId() }, function (res) {
-        var listEl = document.getElementById('payment-status-list');
-        if (!res.success || !res.items || !res.items.length) { listEl.innerHTML = '<p class="text-muted">ยังไม่มีข้อมูลสถานะการชำระ</p>'; }
-        else {
-          var today = new Date();
-          today.setHours(0, 0, 0, 0);
-          var html = '<table class="payment-status-table"><tr><th>รอบเดือน</th><th>วันที่แจ้งยอด</th><th>ครบกำหนด</th><th>สถานะการชำระ</th><th>วันที่ชำระ</th></tr>';
-          res.items.forEach(function (item) {
-            var due = item.due_date ? new Date(item.due_date) : null;
-            var overdue = due && today > due;
-            var label = '';
-            if (item.payment_status === 'PAID_ON_TIME') label = '✅ ชำระตรงเวลา';
-            else if (item.payment_status === 'PAID_LATE') label = '⏰ ชำระล่าช้า ' + (item.late_days || 0) + ' วัน';
-            else label = '❌ ยังไม่ชำระ' + (overdue ? ' (ครบกำหนดแล้ว)' : '');
-            html += '<tr><td>' + escapeHtml(item.round_month) + '/' + escapeHtml(item.round_year) + '</td>';
-            html += '<td>' + formatDate(item.billing_date) + '</td><td>' + formatDate(item.due_date) + '</td>';
-            html += '<td>' + label + '</td><td>' + (item.payment_date ? formatDate(item.payment_date) : '—') + '</td></tr>';
-          });
-          html += '</table>';
-          listEl.innerHTML = html;
+      API.run('getMyPaymentStatusList', { sessionId: sessionId }, function(res) {
+        if (res.success && res.items) {
+          renderStatusTable(res.items);
+        } else {
+          renderStatusTable([]);
         }
       });
-      API.run('getPaymentHistory', { sessionId: Auth.getSessionId(), unitId: unitId }, function (res) {
-        var el = document.getElementById('list');
-        if (!res.success || !res.rows || !res.rows.length) { el.innerHTML = '<p class="text-muted">ยังไม่มีประวัติการโอน/ชำระ</p>'; return; }
-        var t = '<table><tr><th>รอบ</th><th>จำนวน (บาท)</th><th>วันที่</th><th>สถานะ</th></tr>';
-        res.rows.forEach(function (r) {
-          t += '<tr><td>' + escapeHtml(r.roundId) + '</td><td>' + formatNumber(r.amount) + '</td><td>' + formatDate(r.date) + '</td><td>' + (r.verified ? 'ตรวจแล้ว' : 'รอตรวจ') + '</td></tr>';
-        });
-        t += '</table>';
-        el.innerHTML = t;
+      API.run('getPaymentHistory', { sessionId: sessionId, unitId: unitId }, function(res) {
+        if (res.success && res.rows) {
+          renderHistoryTable(res.rows);
+        } else {
+          renderHistoryTable([]);
+        }
       });
     }
   </script>
