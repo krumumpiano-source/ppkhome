@@ -124,10 +124,26 @@ var API = {
         } else if (action === 'getBillingForUnit') {
           route = '/api/housing/billing/' + (params.unitId || '');
           method = 'GET';
+          if (params.roundId) {
+            route += '?roundId=' + encodeURIComponent(params.roundId);
+          }
         } else if (action === 'submitPayment') {
           route = '/api/housing/payment';
           method = 'POST';
           bodyParams = { roundId: params.roundId, unitId: params.unitId, amount: params.amount, slipDataUrl: params.slipDataUrl, note: params.note };
+        } else if (action === 'submitResidentRequest') {
+          route = '/api/housing/resident-request';
+          method = 'POST';
+          bodyParams = {
+            requestType: params.requestType,
+            requestSubType: params.requestSubType,
+            desiredUnitId: params.desiredUnitId,
+            desiredMoveDate: params.desiredMoveDate,
+            moveOutDate: params.moveOutDate,
+            reason: params.reason,
+            contactPhone: params.contactPhone,
+            pdpaConsent: params.pdpaConsent
+          };
         } else if (action === 'getPaymentHistory') {
           route = '/api/housing/payment-history/' + (params.unitId || '');
           method = 'GET';

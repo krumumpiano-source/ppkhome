@@ -93,10 +93,24 @@
 | J | `mustChangePassword` | Boolean | ต้องเปลี่ยนรหัสผ่าน (`true`/`false`) |
 | K | `createdAt` | Date | วันที่สร้าง |
 | L | `updatedAt` | Date | วันที่อัปเดตล่าสุด |
+| M | `birthDate` | Date | วันเดือนปีเกิด |
+| N | `subjectGroup` | Text | กลุ่มสาระการเรียนรู้ที่ทำงานอยู่ |
+| O | `houseRegNo` | Text | เลขทะเบียนบ้าน |
+| P | `houseNo` | Text | บ้านเลขที่ |
+| Q | `villageName` | Text | หมู่บ้าน/อาคาร |
+| R | `moo` | Text | หมู่ |
+| S | `soi` | Text | ซอย |
+| T | `road` | Text | ถนน |
+| U | `subdistrict` | Text | ตำบล/แขวง |
+| V | `district` | Text | อำเภอ/เขต |
+| W | `province` | Text | จังหวัด |
+| X | `postalCode` | Text | รหัสไปรษณีย์ |
+| Y | `pdpaConsent` | Boolean | ยินยอม PDPA |
+| Z | `pdpaConsentAt` | Date | วันที่ให้ความยินยอม |
 
 **ตัวอย่าง Header Row**:
 ```
-userId | email | passwordHash | fullName | phone | role | unitId | status | householdMembers | mustChangePassword | createdAt | updatedAt
+userId | email | passwordHash | fullName | phone | role | unitId | status | householdMembers | mustChangePassword | createdAt | updatedAt | birthDate | subjectGroup | houseRegNo | houseNo | villageName | moo | soi | road | subdistrict | district | province | postalCode | pdpaConsent | pdpaConsentAt
 ```
 
 ---
@@ -362,6 +376,33 @@ requestId | fullName | email | phone | status | requestedAt
 **ตัวอย่าง Header Row**:
 ```
 requestId | unitId | type | note | status | requestedAt
+```
+
+---
+
+### 15. Sheet: `ResidentRequests`
+**วัตถุประสงค์**: คำร้องขอย้ายห้อง/ย้ายบ้าน และคำร้องขอคืนบ้านพัก
+
+| Column | ชื่อคอลัมน์ | ประเภทข้อมูล | หมายเหตุ |
+|--------|------------|-------------|----------|
+| A | `requestId` | Text | Primary Key (เช่น `req_1234567890`) |
+| B | `userId` | Text | รหัสผู้ใช้งาน |
+| C | `unitId` | Text | รหัสหน่วย |
+| D | `requestType` | Text | ประเภท: `move`, `return` |
+| E | `requestSubType` | Text | ย้ายห้อง/ย้ายบ้าน (optional) |
+| F | `desiredUnitId` | Text | หน่วยที่ต้องการ (optional) |
+| G | `desiredMoveDate` | Date | วันที่ต้องการย้าย (optional) |
+| H | `moveOutDate` | Date | วันที่ขอคืนบ้านพัก (optional) |
+| I | `reason` | Text | เหตุผล/รายละเอียด |
+| J | `contactPhone` | Text | เบอร์ติดต่อ |
+| K | `status` | Text | สถานะ: `pending`, `approved`, `rejected`, `in_progress` |
+| L | `pdpaConsent` | Boolean | ยินยอม PDPA |
+| M | `pdpaConsentAt` | Date | วันที่ให้ความยินยอม |
+| N | `createdAt` | Date | วันที่ส่งคำร้อง |
+
+**ตัวอย่าง Header Row**:
+```
+requestId | userId | unitId | requestType | requestSubType | desiredUnitId | desiredMoveDate | moveOutDate | reason | contactPhone | status | pdpaConsent | pdpaConsentAt | createdAt
 ```
 
 ---

@@ -17,7 +17,22 @@ router.get('/profile', requireAuth, async (req, res) => {
     phone: user.phone,
     role: user.role,
     unitId: user.unitId,
-    status: user.status
+    status: user.status,
+    householdMembers: user.householdMembers || '',
+    birthDate: user.birthDate || '',
+    subjectGroup: user.subjectGroup || '',
+    houseRegNo: user.houseRegNo || '',
+    houseNo: user.houseNo || '',
+    villageName: user.villageName || '',
+    moo: user.moo || '',
+    soi: user.soi || '',
+    road: user.road || '',
+    subdistrict: user.subdistrict || '',
+    district: user.district || '',
+    province: user.province || '',
+    postalCode: user.postalCode || '',
+    pdpaConsent: user.pdpaConsent === true || String(user.pdpaConsent).toLowerCase() === 'true',
+    pdpaConsentAt: user.pdpaConsentAt || ''
   };
   res.json({ success: true, profile });
 });
@@ -29,7 +44,25 @@ router.post('/profile', requireAuth, async (req, res) => {
     return res.json({ success: false, message: 'ไม่พบผู้ใช้' });
   }
   const { fullName, phone, householdMembers, email } = req.body;
-  const allowed = ['fullName', 'phone', 'householdMembers'];
+  const allowed = [
+    'fullName',
+    'phone',
+    'householdMembers',
+    'birthDate',
+    'subjectGroup',
+    'houseRegNo',
+    'houseNo',
+    'villageName',
+    'moo',
+    'soi',
+    'road',
+    'subdistrict',
+    'district',
+    'province',
+    'postalCode',
+    'pdpaConsent',
+    'pdpaConsentAt'
+  ];
   for (const key of allowed) {
     if (req.body[key] !== undefined) {
       user[key] = req.body[key];
