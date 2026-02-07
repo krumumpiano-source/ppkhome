@@ -11,6 +11,7 @@ const {
   getBillingDateForRound,
   getDueDateForRound,
   daysBetween,
+  getUnitIds,
   auditLog,
   getSysConfig,
   hashPassword,
@@ -18,6 +19,11 @@ const {
 } = require('../services/logic');
 const db = require('../services/db');
 const drive = require('../services/drive');
+const { sendReceiptEmail } = require('../services/email');
+
+function isVerifiedValue(value) {
+  return value === true || String(value).toLowerCase() === 'true';
+}
 
 router.get('/billing/:unitId', requireAuth, async (req, res) => {
   const { unitId } = req.params;
@@ -156,6 +162,129 @@ router.get('/payment-history/:unitId', requireAuth, async (req, res) => {
   res.json({ success: true, rows });
 });
 
+router.get('/payment-review', requireAuth, requireRole(CONFIG.ROLES.ACCOUNTING, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+  const status = String(req.query.status || 'pending').toLowerCase();
+  const query = String(req.query.q || '').trim().toLowerCase();
+  const payments = await db.getCollection('PAYMENTS');
+  const users = await db.getCollection('USERS');
+  const rounds = await db.getCollection('BILLING_ROUNDS');
+  const userById = {};
+  const userByUnit = {};
+  for (const u of users) {
+    if (u.userId) userById[u.userId] = u;
+    if (u.unitId && u.status === 'active') userByUnit[u.unitId] = u;
+  }
+  const roundById = {};
+  for (const r of rounds) {
+    roundById[r.roundId] = r;
+  }
+  const items = payments.map(p => {
+    const verified = isVerifiedValue(p.verified);
+    const resident = userById[p.userId] || userByUnit[p.unitId] || null;
+    const round = roundById[p.roundId] || null;
+    return {
+      rowIndex: p._rowIndex,
+      roundId: p.roundId,
+      roundMonth: round ? round.month : null,
+      roundYear: round ? round.year : null,
+      unitId: p.unitId,
+      amount: Number(p.amount) || 0,
+      date: p.date,
+      verified,
+      slipDataUrl: p.slipDataUrl || '',
+      note: p.note || '',
+      residentName: resident ? resident.fullName || '' : '',
+      residentEmail: resident ? resident.email || '' : ''
+    };
+  }).filter(item => {
+    if (status === 'pending') return !item.verified;
+    if (status === 'verified') return item.verified;
+    return true;
+  }).filter(item => {
+    if (!query) return true;
+    const hay = [item.unitId, item.residentName, item.residentEmail, item.roundId].join(' ').toLowerCase();
+    return hay.indexOf(query) >= 0;
+  }).sort((a, b) => {
+    const da = a.date || '';
+    const db = b.date || '';
+    return db.localeCompare(da);
+  });
+  res.json({ success: true, items });
+});
+
+router.post('/payment-verify', requireAuth, requireRole(CONFIG.ROLES.ACCOUNTING, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+  const rowIndex = Number(req.body.rowIndex);
+  if (!rowIndex) {
+    return res.json({ success: false, message: 'กรุณาระบุรายการที่ต้องการตรวจสอบ' });
+  }
+  const updated = await db.updateInCollection('PAYMENTS', p => p._rowIndex === rowIndex, (item) => {
+    item.verified = 'TRUE';
+    return item;
+  });
+  if (!updated) {
+    return res.json({ success: false, message: 'ไม่พบรายการชำระที่ต้องการตรวจสอบ' });
+  }
+  await auditLog('payment_verify', req.session.userId, { rowIndex });
+  res.json({ success: true, message: 'ยืนยันการตรวจสอบเรียบร้อย' });
+});
+
+router.post('/payment-receipt', requireAuth, requireRole(CONFIG.ROLES.ACCOUNTING, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+  const rowIndex = Number(req.body.rowIndex);
+  if (!rowIndex) {
+    return res.json({ success: false, message: 'กรุณาระบุรายการที่ต้องการส่งใบเสร็จ' });
+  }
+  const payments = await db.getCollection('PAYMENTS');
+  const payment = payments.find(p => p._rowIndex === rowIndex);
+  if (!payment) {
+    return res.json({ success: false, message: 'ไม่พบรายการชำระ' });
+  }
+  if (!isVerifiedValue(payment.verified)) {
+    return res.json({ success: false, message: 'กรุณายืนยันการตรวจสอบสลิปก่อนส่งใบเสร็จ' });
+  }
+  const users = await db.getCollection('USERS');
+  const user = users.find(u => u.userId === payment.userId) ||
+    users.find(u => u.unitId === payment.unitId && u.status === 'active');
+  if (!user || !user.email) {
+    return res.json({ success: false, message: 'ไม่พบอีเมลผู้พักอาศัย' });
+  }
+  const rounds = await db.getCollection('BILLING_ROUNDS');
+  const round = rounds.find(r => r.roundId === payment.roundId);
+  const roundLabel = round ? (round.month + '/' + round.year) : payment.roundId;
+  const paidDate = payment.date ? new Date(payment.date) : new Date();
+  const subject = 'ใบเสร็จรับเงินบ้านพักครู รอบ ' + roundLabel;
+  const amount = Number(payment.amount) || 0;
+  const text = [
+    'ใบเสร็จรับเงินบ้านพักครู',
+    'หน่วย: ' + (payment.unitId || '-'),
+    'รอบ: ' + roundLabel,
+    'ยอดชำระ: ' + amount.toLocaleString('th-TH') + ' บาท',
+    'วันที่ชำระ: ' + paidDate.toISOString().slice(0, 10),
+    '',
+    'ขอบคุณที่ชำระค่าใช้จ่าย'
+  ].join('\n');
+  const html = [
+    '<div style="font-family: Tahoma, Arial, sans-serif; font-size: 14px;">',
+    '<h3>ใบเสร็จรับเงินบ้านพักครู</h3>',
+    '<p><strong>หน่วย:</strong> ' + (payment.unitId || '-') + '</p>',
+    '<p><strong>รอบ:</strong> ' + roundLabel + '</p>',
+    '<p><strong>ยอดชำระ:</strong> ' + amount.toLocaleString('th-TH') + ' บาท</p>',
+    '<p><strong>วันที่ชำระ:</strong> ' + paidDate.toISOString().slice(0, 10) + '</p>',
+    '<p>ขอบคุณที่ชำระค่าใช้จ่าย</p>',
+    '</div>'
+  ].join('');
+  const emailResult = await sendReceiptEmail({
+    to: user.email,
+    subject,
+    text,
+    html
+  });
+  if (!emailResult.success) {
+    return res.json({ success: false, message: emailResult.message || 'ส่งอีเมลไม่สำเร็จ' });
+  }
+  await auditLog('payment_receipt_sent', req.session.userId, { rowIndex, email: user.email });
+  res.json({ success: true, message: 'ส่งใบเสร็จเรียบร้อย' });
+});
+
 router.get('/water-form/:unitId', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
   const { unitId } = req.params;
   const readings = await db.getCollection('WATER_READINGS');
@@ -176,6 +305,32 @@ router.get('/water-form/:unitId', requireAuth, requireRole(CONFIG.ROLES.COMMITTE
     prevDate,
     ratePerUnit: Number(rate)
   });
+});
+
+router.get('/water-table', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
+  const readings = await db.getCollection('WATER_READINGS');
+  const lastByUnit = {};
+  for (let i = readings.length - 1; i >= 0; i--) {
+    const reading = readings[i];
+    if (!lastByUnit[reading.unitId]) {
+      lastByUnit[reading.unitId] = reading;
+    }
+  }
+  const units = getUnitIds();
+  const list = [];
+  units.house.forEach(id => list.push({ unitId: id, type: 'house' }));
+  units.flat.forEach(id => list.push({ unitId: id, type: 'flat' }));
+  const rate = await getSysConfig('waterRate') || CONFIG.DEFAULT_WATER_RATE;
+  const items = list.map(unit => {
+    const prev = lastByUnit[unit.unitId] || null;
+    return {
+      unitId: unit.unitId,
+      type: unit.type,
+      prevReading: prev ? Number(prev.currentReading) : null,
+      prevDate: prev ? prev.date : null
+    };
+  });
+  res.json({ success: true, ratePerUnit: Number(rate), units: items });
 });
 
 router.post('/water-reading', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
@@ -218,7 +373,6 @@ router.post('/water-reading', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, C
 
 router.get('/electric-form/:roundId', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), (req, res) => {
   const { roundId } = req.params;
-  const { getUnitIds } = require('../services/logic');
   const units = getUnitIds();
   const list = [];
   units.house.forEach(id => list.push({ unitId: id, type: 'house' }));
@@ -228,8 +382,17 @@ router.get('/electric-form/:roundId', requireAuth, requireRole(CONFIG.ROLES.COMM
 
 router.post('/electric-reading', requireAuth, requireRole(CONFIG.ROLES.COMMITTEE, CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN), async (req, res) => {
   const { roundId, readings, totalBill, lostHouse, lostFlat } = req.body;
+  let list = readings || [];
+  if (typeof list === 'string') {
+    try {
+      list = JSON.parse(list || '[]');
+    } catch (e) {
+      list = [];
+    }
+  }
+  if (!Array.isArray(list)) list = [];
   let sum = 0;
-  for (const reading of readings) {
+  for (const reading of list) {
     const amt = Math.ceil(Number(reading.amount) || 0);
     sum += amt;
     await db.addToCollection('ELECTRIC_READINGS', {

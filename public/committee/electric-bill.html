@@ -13,15 +13,26 @@
   <main class="main container">
     <div class="card">
       <h2>บันทึกค่าไฟ</h2>
-      <p class="text-muted">กรอกรายบ้าน/แฟลต · ระบบปัดขึ้นอัตโนมัติ</p>
+      <p class="text-muted">กรอกรายบ้าน/แฟลตในตาราง · ระบบปัดขึ้นอัตโนมัติ</p>
       <div id="alert" class="alert hide"></div>
       <form id="form">
         <div class="form-group"><label>ยอดการไฟฟ้าเรียกเก็บจริง (บาท)</label><input type="number" id="totalBill" step="0.01"></div>
         <div class="form-group"><label>ค่า Lost บ้านพัก</label><input type="number" id="lostHouse" step="0.01" value="0"></div>
         <div class="form-group"><label>ค่า Lost แฟลต</label><input type="number" id="lostFlat" step="0.01" value="0"></div>
-        <p class="text-muted">รายหน่วย: กรอกในรูปแบบ JSON array เช่น [{"unitId":"1","amount":500},{"unitId":"F1","amount":300}]</p>
-        <div class="form-group"><label>รายการค่าไฟรายหน่วย (JSON)</label><textarea id="readings" rows="4" placeholder='[{"unitId":"1","amount":500}]'></textarea></div>
-        <button type="submit" class="btn">บันทึก</button>
+        <div id="sumInfo" class="text-muted" style="margin-bottom: 0.75rem;">รวมรายหน่วย: 0 บาท</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>หน่วย</th>
+                <th>ประเภท</th>
+                <th>ยอดรายหน่วย (บาท)</th>
+              </tr>
+            </thead>
+            <tbody id="electricTableBody"></tbody>
+          </table>
+        </div>
+        <button type="submit" class="btn" style="margin-top: 1rem;">บันทึก</button>
       </form>
     </div>
   </main>
@@ -36,14 +47,76 @@
     document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('committee/electric');
     document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
     var roundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);
+
+    function renderElectricTable(units) {
+      var tbody = document.getElementById('electricTableBody');
+      tbody.innerHTML = '';
+      units.forEach(function(unit) {
+        var tr = document.createElement('tr');
+        tr.dataset.unitId = unit.unitId;
+        tr.innerHTML = ''
+          + '<td>' + escapeHtml(unit.unitId) + '</td>'
+          + '<td>' + (unit.type === 'flat' ? 'แฟลต' : 'บ้านพัก') + '</td>'
+          + '<td><input type="number" class="amount-input" step="0.01" style="max-width: 160px;"></td>';
+        tbody.appendChild(tr);
+        tr.querySelector('.amount-input').addEventListener('input', updateSumInfo);
+      });
+      updateSumInfo();
+    }
+
+    function updateSumInfo() {
+      var rows = Array.prototype.slice.call(document.querySelectorAll('#electricTableBody tr'));
+      var sum = 0;
+      rows.forEach(function(tr) {
+        var val = tr.querySelector('.amount-input').value;
+        if (val !== '') {
+          sum += Math.ceil(Number(val) || 0);
+        }
+      });
+      var totalBill = Number(document.getElementById('totalBill').value) || 0;
+      var diff = sum - totalBill;
+      var info = 'รวมรายหน่วย: ' + formatNumber(sum) + ' บาท';
+      if (totalBill > 0) {
+        info += ' · ส่วนต่าง: ' + formatNumber(diff) + ' บาท';
+      }
+      document.getElementById('sumInfo').textContent = info;
+    }
+
+    function loadElectricUnits() {
+      API.run('getElectricFormData', { sessionId: Auth.getSessionId(), roundId: roundId }, function (res) {
+        if (!res.success) {
+          var alertEl = document.getElementById('alert');
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'ไม่สามารถโหลดรายชื่อหน่วยได้';
+          alertEl.classList.remove('hide');
+          return;
+        }
+        renderElectricTable(res.units || []);
+      });
+    }
+
+    document.getElementById('totalBill').addEventListener('input', updateSumInfo);
     document.getElementById('form').addEventListener('submit', function (e) {
       e.preventDefault();
+      var rows = Array.prototype.slice.call(document.querySelectorAll('#electricTableBody tr'));
       var readings = [];
-      try { readings = JSON.parse(document.getElementById('readings').value || '[]'); } catch (err) { readings = []; }
+      rows.forEach(function (tr) {
+        var val = tr.querySelector('.amount-input').value;
+        if (val !== '') {
+          readings.push({ unitId: tr.dataset.unitId, amount: val });
+        }
+      });
+      if (readings.length === 0) {
+        var alertEmpty = document.getElementById('alert');
+        alertEmpty.className = 'alert alert-warning';
+        alertEmpty.textContent = 'กรุณากรอกยอดรายหน่วยอย่างน้อย 1 หน่วย';
+        alertEmpty.classList.remove('hide');
+        return;
+      }
       API.run('submitElectricReadings', {
         sessionId: Auth.getSessionId(),
         roundId: roundId,
-        readings: JSON.stringify(readings),
+        readings: readings,
         totalBill: document.getElementById('totalBill').value,
         lostHouse: document.getElementById('lostHouse').value,
         lostFlat: document.getElementById('lostFlat').value
@@ -54,6 +127,8 @@
         alertEl.classList.remove('hide');
       });
     });
+
+    loadElectricUnits();
   </script>
 </body>
 </html>

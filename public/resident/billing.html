@@ -21,8 +21,10 @@
           <input type="number" id="amount" step="0.01" required>
         </div>
         <div class="form-group">
-          <label>แนบสลิป (URL หรือ Base64)</label>
-          <input type="text" id="slip" placeholder="ลิงก์หรือข้อมูลสลิป" required>
+          <label>แนบสลิป</label>
+          <input type="file" id="slipFile" accept="image/*">
+          <div class="text-muted" style="margin-top: 0.5rem;">เลือกไฟล์ภาพสลิป หรือวางลิงก์สลิปด้านล่าง</div>
+          <input type="text" id="slipUrl" placeholder="ลิงก์สลิป (ถ้ามี)" style="margin-top: 0.5rem;">
         </div>
         <div class="form-group">
           <label>หมายเหตุ</label>
@@ -49,25 +51,58 @@
         if (!res.success) { el.innerHTML = '<p class="alert alert-error">' + escapeHtml(res.message) + '</p>'; return; }
         if (res.status === 'not_open') { el.innerHTML = '<p>ยังไม่เปิดรอบ</p>'; return; }
         el.innerHTML = '<p>ยอดรวม: ' + formatNumber(res.total) + ' บาท · สถานะ: ' + res.status + '</p>';
+        if (!document.getElementById('amount').value) {
+          document.getElementById('amount').value = res.total || '';
+        }
         if (res.status !== 'paid') document.getElementById('form').classList.remove('hide');
       });
       document.getElementById('form').addEventListener('submit', function (e) {
         e.preventDefault();
-        API.run('getBillingForUnit', { sessionId: Auth.getSessionId(), unitId: unitId }, function (r) {
-          if (!r.round) return;
-          API.run('submitPayment', {
-            sessionId: Auth.getSessionId(),
-            roundId: r.round.id,
-            unitId: unitId,
-            amount: document.getElementById('amount').value,
-            slipDataUrl: document.getElementById('slip').value,
-            note: document.getElementById('note').value
-          }, function (res) {
-            var alertEl = document.getElementById('alert');
-            alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
-            alertEl.textContent = res.message;
-            alertEl.classList.remove('hide');
-            if (res.success) setTimeout(function () { location.reload(); }, 1500);
+        var alertEl = document.getElementById('alert');
+        alertEl.className = 'alert alert-warning';
+        alertEl.textContent = 'กำลังเตรียมสลิป...';
+        alertEl.classList.remove('hide');
+        function resolveSlip(callback) {
+          var fileInput = document.getElementById('slipFile');
+          var slipUrl = document.getElementById('slipUrl').value.trim();
+          if (fileInput.files && fileInput.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function () {
+              callback(reader.result);
+            };
+            reader.onerror = function () {
+              callback(null);
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+            return;
+          }
+          if (slipUrl) {
+            callback(slipUrl);
+            return;
+          }
+          callback(null);
+        }
+        resolveSlip(function (slipDataUrl) {
+          if (!slipDataUrl) {
+            alertEl.className = 'alert alert-error';
+            alertEl.textContent = 'กรุณาแนบสลิป';
+            return;
+          }
+          API.run('getBillingForUnit', { sessionId: Auth.getSessionId(), unitId: unitId }, function (r) {
+            if (!r.round) return;
+            API.run('submitPayment', {
+              sessionId: Auth.getSessionId(),
+              roundId: r.round.id,
+              unitId: unitId,
+              amount: document.getElementById('amount').value,
+              slipDataUrl: slipDataUrl,
+              note: document.getElementById('note').value
+            }, function (res) {
+              alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
+              alertEl.textContent = res.message;
+              alertEl.classList.remove('hide');
+              if (res.success) setTimeout(function () { location.reload(); }, 1500);
+            });
           });
         });
       });

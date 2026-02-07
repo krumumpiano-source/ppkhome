@@ -42,6 +42,7 @@ var RoleGuard = {
           summary: 'สรุปรอบการเงิน',
           ledger: 'บัญชีกองกลาง',
           bankCheck: 'ตรวจสอบยอดเงิน',
+        slipReview: 'ตรวจเช็คสลิป',
           users: 'จัดการผู้ใช้',
           roles: 'บทบาท',
           assets: 'บ้านพัก/แฟลต',
@@ -68,6 +69,7 @@ var RoleGuard = {
           summary: 'Financial Summary',
           ledger: 'Central Ledger',
           bankCheck: 'Verify Balance',
+        slipReview: 'Slip Review',
           users: 'Manage Users',
           roles: 'Roles',
           assets: 'Housing/Flats',
@@ -98,6 +100,7 @@ var RoleGuard = {
       summary: getLabel('summary'),
       ledger: getLabel('ledger'),
       bankCheck: getLabel('bankCheck'),
+      slipReview: getLabel('slipReview'),
       users: getLabel('users'),
       roles: getLabel('roles'),
       assets: getLabel('assets'),
@@ -128,6 +131,7 @@ var RoleGuard = {
       items.push({ href: 'accounting/summary.html', label: t.summary });
       items.push({ href: 'accounting/ledger.html', label: t.ledger });
       items.push({ href: 'accounting/bank-check.html', label: t.bankCheck });
+      items.push({ href: 'accounting/slip-review.html', label: t.slipReview });
     }
     if (r === ROLES.admin || r === ROLES.deputy_admin) {
       items.push({ href: 'admin/users.html', label: t.users });
@@ -138,6 +142,7 @@ var RoleGuard = {
       items.push({ href: 'admin/about-manager.html', label: t.aboutManager });
       items.push({ href: 'admin/reports.html', label: t.reports });
       items.push({ href: 'admin/audit-log.html', label: t.auditLog });
+      items.push({ href: 'accounting/slip-review.html', label: t.slipReview });
     }
     if (r === ROLES.executive) {
       items.push({ href: 'executive/dashboard.html', label: t.executiveDashboard });

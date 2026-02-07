@@ -1032,7 +1032,7 @@
             '</div>' +
             '<div class="form-row two">' +
               '<div><label>วันที่ชำระ</label><br><input type="date" id="payDate" value="' + toISODate(new Date()) + '"></div>' +
-              '<div><label>เลขอ้างอิงสลิป (จำเป็น)</label><br><input type="text" id="slipRef" placeholder="SLIP-XXXX"></div>' +
+              '<div><label>เลขอ้างอิงสลิป (ถ้ามี)</label><br><input type="text" id="slipRef" placeholder="SLIP-XXXX"></div>' +
             '</div>' +
             '<div class="form-row">' +
               '<div><label>หมายเหตุ</label><br><input type="text" id="payNote" placeholder="ระบุเพิ่มเติม (ถ้ามี)"></div>' +
@@ -1058,10 +1058,6 @@
           var payer = document.getElementById('payerSelect').value;
           var payDate = document.getElementById('payDate').value;
           var note = document.getElementById('payNote').value.trim();
-          if (!slipRef) {
-            message.innerHTML = '<div class="message error">กรุณาระบุเลขอ้างอิงสลิป</div>';
-            return;
-          }
           if (amount <= 0) {
             message.innerHTML = '<div class="message error">จำนวนเงินต้องมากกว่า 0</div>';
             return;

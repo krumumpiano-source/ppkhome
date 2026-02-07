@@ -128,6 +128,21 @@ var API = {
           route = '/api/housing/payment';
           method = 'POST';
           bodyParams = { roundId: params.roundId, unitId: params.unitId, amount: params.amount, slipDataUrl: params.slipDataUrl, note: params.note };
+        } else if (action === 'getPaymentReviewList') {
+          route = '/api/housing/payment-review';
+          method = 'GET';
+          var queryParams = [];
+          if (params.status) queryParams.push('status=' + encodeURIComponent(params.status));
+          if (params.q) queryParams.push('q=' + encodeURIComponent(params.q));
+          if (queryParams.length > 0) route += '?' + queryParams.join('&');
+        } else if (action === 'verifyPayment') {
+          route = '/api/housing/payment-verify';
+          method = 'POST';
+          bodyParams = { rowIndex: params.rowIndex };
+        } else if (action === 'sendPaymentReceipt') {
+          route = '/api/housing/payment-receipt';
+          method = 'POST';
+          bodyParams = { rowIndex: params.rowIndex };
         } else if (action === 'getPaymentHistory') {
           route = '/api/housing/payment-history/' + (params.unitId || '');
           method = 'GET';
@@ -137,6 +152,9 @@ var API = {
           method = 'GET';
         } else if (action === 'getWaterFormData') {
           route = '/api/housing/water-form/' + (params.unitId || '');
+          method = 'GET';
+        } else if (action === 'getWaterTableData') {
+          route = '/api/housing/water-table';
           method = 'GET';
         } else if (action === 'submitWaterReading') {
           route = '/api/housing/water-reading';

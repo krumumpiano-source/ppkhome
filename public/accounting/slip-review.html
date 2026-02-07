@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตรวจเช็คสลิป - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>ตรวจเช็คสลิป & ส่งใบเสร็จ</h2>
+      <p class="text-muted">ตรวจสอบสลิปการโอน และกดส่งใบเสร็จทางอีเมลให้ผู้พักอาศัย</p>
+      <div id="alert" class="alert hide"></div>
+      <div class="form-group">
+        <label>สถานะ</label>
+        <select id="statusFilter" class="form-control">
+          <option value="pending">รอตรวจสอบ</option>
+          <option value="verified">ตรวจสอบแล้ว</option>
+          <option value="all">ทั้งหมด</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ค้นหา (หน่วย, ชื่อ, อีเมล, รอบ)</label>
+        <input type="text" id="searchInput" placeholder="เช่น 5, F1, สมชาย">
+      </div>
+      <div class="form-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button type="button" id="btnRefresh" class="btn">โหลดรายการ</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>รอบ</th>
+              <th>หน่วย</th>
+              <th>ผู้ชำระ</th>
+              <th>อีเมล</th>
+              <th>จำนวนเงิน</th>
+              <th>วันที่ชำระ</th>
+              <th>สลิป</th>
+              <th>สถานะ</th>
+              <th>การจัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="slipTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    if (!Auth.isLoggedIn()) location.href = '../login.html';
+    if (Auth.getRole() !== 'accounting' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('accounting/slip-review.html');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
+
+    function safeSlipUrl(url) {
+      if (!url) return '';
+      if (url.indexOf('data:image/') === 0) return url;
+      if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) return url;
+      return '';
+    }
+
+    function formatRound(item) {
+      if (item.roundMonth && item.roundYear) {
+        var monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                         'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+        return monthNames[item.roundMonth - 1] + ' ' + item.roundYear;
+      }
+      return item.roundId || '-';
+    }
+
+    function showAlert(type, message) {
+      var alertEl = document.getElementById('alert');
+      alertEl.className = 'alert ' + type;
+      alertEl.textContent = message;
+      alertEl.classList.remove('hide');
+    }
+
+    function renderTable(items) {
+      var tbody = document.getElementById('slipTableBody');
+      tbody.innerHTML = '';
+      if (!items || items.length === 0) {
+        var empty = document.createElement('tr');
+        empty.innerHTML = '<td colspan="9" class="text-muted">ไม่มีรายการ</td>';
+        tbody.appendChild(empty);
+        return;
+      }
+      items.forEach(function (item) {
+        var tr = document.createElement('tr');
+        tr.dataset.rowIndex = item.rowIndex;
+        tr.dataset.verified = item.verified ? 'true' : 'false';
+        var slipUrl = safeSlipUrl(item.slipDataUrl);
+        var slipLink = slipUrl ? '<a href="' + escapeHtml(slipUrl) + '" target="_blank">ดูสลิป</a>' : '-';
+        var statusLabel = item.verified ? 'ตรวจสอบแล้ว' : 'รอตรวจสอบ';
+        var verifyDisabled = item.verified ? 'disabled' : '';
+        var sendDisabled = item.verified ? '' : 'disabled';
+        tr.innerHTML = ''
+          + '<td>' + escapeHtml(formatRound(item)) + '</td>'
+          + '<td>' + escapeHtml(item.unitId || '-') + '</td>'
+          + '<td>' + escapeHtml(item.residentName || '-') + '</td>'
+          + '<td>' + escapeHtml(item.residentEmail || '-') + '</td>'
+          + '<td>' + formatNumber(item.amount || 0) + '</td>'
+          + '<td>' + escapeHtml(formatDate(item.date)) + '</td>'
+          + '<td>' + slipLink + '</td>'
+          + '<td>' + statusLabel + '</td>'
+          + '<td>'
+          + '<button type="button" class="btn btn-verify" style="padding: 0.3rem 0.6rem; margin-right: 0.3rem;" ' + verifyDisabled + '>ตรวจสอบแล้ว</button>'
+          + '<button type="button" class="btn btn-send" style="padding: 0.3rem 0.6rem;" ' + sendDisabled + '>ส่งใบเสร็จ</button>'
+          + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function loadList() {
+      var status = document.getElementById('statusFilter').value;
+      var q = document.getElementById('searchInput').value.trim();
+      API.run('getPaymentReviewList', { sessionId: Auth.getSessionId(), status: status, q: q }, function (res) {
+        if (!res.success) {
+          showAlert('alert-error', res.message || 'ไม่สามารถโหลดข้อมูลได้');
+          return;
+        }
+        document.getElementById('alert').classList.add('hide');
+        renderTable(res.items || []);
+      });
+    }
+
+    document.getElementById('btnRefresh').addEventListener('click', loadList);
+    document.getElementById('statusFilter').addEventListener('change', loadList);
+
+    document.getElementById('slipTableBody').addEventListener('click', function (e) {
+      var target = e.target;
+      if (target.classList.contains('btn-verify')) {
+        var row = target.closest('tr');
+        var rowIndex = row.dataset.rowIndex;
+        target.disabled = true;
+        API.run('verifyPayment', { sessionId: Auth.getSessionId(), rowIndex: rowIndex }, function (res) {
+          if (!res.success) {
+            showAlert('alert-error', res.message || 'ยืนยันไม่สำเร็จ');
+            target.disabled = false;
+            return;
+          }
+          showAlert('alert-success', res.message || 'ยืนยันการตรวจสอบเรียบร้อย');
+          loadList();
+        });
+      }
+      if (target.classList.contains('btn-send')) {
+        var rowSend = target.closest('tr');
+        var rowIndexSend = rowSend.dataset.rowIndex;
+        target.disabled = true;
+        API.run('sendPaymentReceipt', { sessionId: Auth.getSessionId(), rowIndex: rowIndexSend }, function (res) {
+          if (!res.success) {
+            showAlert('alert-error', res.message || 'ส่งอีเมลไม่สำเร็จ');
+            target.disabled = false;
+            return;
+          }
+          showAlert('alert-success', res.message || 'ส่งใบเสร็จเรียบร้อย');
+          loadList();
+        });
+      }
+    });
+
+    loadList();
+  </script>
+</body>
+</html>
