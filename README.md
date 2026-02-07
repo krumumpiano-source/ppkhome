@@ -60,6 +60,7 @@ teacher-housing/
 - `docs/RENDER_DEPLOYMENT.md` - Render deployment guide
 - `docs/FRONTEND_API_SETUP.md` - Frontend API setup guide
 - `docs/ARCHITECTURE.md` - System architecture
+- `docs/ROLE_PERMISSION_SPEC.md` - Role & permission design
 - `docs/SHEETS_STRUCTURE.md` - Google Sheets structure
 - `docs/DRIVE_SETUP.md` - Google Drive setup
 - `docs/STANDARDIZATION.md` - Frontend standards
