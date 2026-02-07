@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ระเบียบของพันธะโค - ระบบบ้านพักครู</title>
+
+  <link rel="stylesheet" href="../../assets/css/tailwind-inline.css" />
+  <script>
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+
+  <script>
+    window.API_BASE_URL = 'https://your-app.onrender.com';
+  </script>
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/mock-data.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/role-guard.js"></script>
+  <script src="../../assets/js/layout.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">ระเบียบของพันธะโค</h1>
+      <p class="text-gray-600">ข้อกำหนดและพันธะหน้าที่สำหรับผู้พักอาศัยบ้านพักครู</p>
+    </div>
+
+    <div class="space-y-4">
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">1. การชำระค่าใช้จ่าย</h2>
+        <ul class="list-disc list-inside text-gray-700 space-y-1">
+          <li>ชำระค่าใช้จ่ายภายในระยะเวลาที่กำหนดหลังการแจ้งยอด</li>
+          <li>เก็บหลักฐานการโอนเงินและส่งสลิปผ่านระบบทุกครั้ง</li>
+          <li>หากพบความคลาดเคลื่อนให้แจ้งเจ้าหน้าที่ทันที</li>
+        </ul>
+      </section>
+
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">2. การดูแลบ้านพัก</h2>
+        <ul class="list-disc list-inside text-gray-700 space-y-1">
+          <li>ดูแลรักษาทรัพย์สินส่วนกลางและทรัพย์สินภายในบ้านพัก</li>
+          <li>ห้ามต่อเติมหรือปรับปรุงโครงสร้างโดยไม่ได้รับอนุญาต</li>
+          <li>แจ้งซ่อมหรือปัญหาด้านสาธารณูปโภคผ่านช่องทางที่กำหนด</li>
+        </ul>
+      </section>
+
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">3. การย้ายและคืนบ้านพัก</h2>
+        <ul class="list-disc list-inside text-gray-700 space-y-1">
+          <li>การย้ายห้องหรือย้ายบ้านพักต้องยื่นคำร้องล่วงหน้าตามระเบียบ</li>
+          <li>การคืนบ้านพักให้แจ้งล่วงหน้า และจัดเตรียมเอกสารประกอบ</li>
+          <li>เจ้าหน้าที่จะนัดตรวจสภาพก่อนส่งมอบบ้านพัก</li>
+        </ul>
+      </section>
+
+      <section class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-blue-900 mb-3">4. การคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h2>
+        <ul class="list-disc list-inside text-blue-900 space-y-1">
+          <li>ข้อมูลส่วนบุคคลจะใช้เพื่อการบริหารจัดการบ้านพักเท่านั้น</li>
+          <li>ผู้พักอาศัยสามารถขอเข้าถึงหรือแก้ไขข้อมูลได้ตามสิทธิ</li>
+          <li>ระบบมีมาตรการควบคุมการเข้าถึงและการเปิดเผยข้อมูล</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    if (!Auth.requireLogin('../../login.html')) return;
+    Layout.init('resident/regulations.html');
+  </script>
+</body>
+</html>

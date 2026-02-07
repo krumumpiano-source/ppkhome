@@ -21,10 +21,22 @@ const drive = require('../services/drive');
 
 router.get('/billing/:unitId', requireAuth, async (req, res) => {
   const { unitId } = req.params;
+  const { roundId } = req.query;
   if ((req.session.role === CONFIG.ROLES.RESIDENT || req.session.role === CONFIG.ROLES.COMMITTEE) && req.session.unitId !== unitId) {
     return res.json({ success: false, message: 'ไม่มีสิทธิ์ดูหน่วยนี้' });
   }
-  const round = await getCurrentBillingRound();
+  let round = null;
+  if (roundId) {
+    const rounds = await db.getCollection('BILLING_ROUNDS');
+    const matched = db.findInCollection(rounds, r => r.roundId === roundId);
+    if (matched) {
+      round = { id: matched.roundId, month: matched.month, year: matched.year, status: matched.status };
+    } else {
+      return res.json({ success: false, message: 'ไม่พบรอบแจ้งยอดที่ระบุ' });
+    }
+  } else {
+    round = await getCurrentBillingRound();
+  }
   if (!round) {
     return res.json({ success: true, round: null, items: [], total: 0, status: 'not_open' });
   }
@@ -33,6 +45,8 @@ router.get('/billing/:unitId', requireAuth, async (req, res) => {
   const commonFee = await getCommonFeeForUnit(unitId);
   const total = (water || 0) + (electric || 0) + (commonFee || 0);
   const payment = await getPaymentForRoundAndUnit(round.id, unitId);
+  const billingDate = await getBillingDateForRound(round.id);
+  const dueDate = await getDueDateForRound(round.id);
   const status = payment ? (payment.verified ? 'paid' : 'pending_check') : 'unpaid';
   res.json({
     success: true,
@@ -44,7 +58,9 @@ router.get('/billing/:unitId', requireAuth, async (req, res) => {
     ],
     total,
     status,
-    payment
+    payment,
+    billingDate: billingDate ? billingDate.toISOString().slice(0, 10) : null,
+    dueDate: dueDate ? dueDate.toISOString().slice(0, 10) : null
   });
 });
 
@@ -136,6 +152,58 @@ router.post('/payment', requireAuth, async (req, res) => {
   await auditLog('payment_submit', req.session.userId, { roundId, unitId, amount, slipUploaded: true });
   const roundInfo = await getRoundMonthYear(roundId);
   res.json({ success: true, message: 'ส่งหลักฐานเรียบร้อย รอการตรวจสอบ' });
+});
+
+router.post('/resident-request', requireAuth, async (req, res) => {
+  const {
+    requestType,
+    requestSubType,
+    desiredUnitId,
+    desiredMoveDate,
+    moveOutDate,
+    reason,
+    contactPhone,
+    pdpaConsent
+  } = req.body;
+  const unitId = req.session.unitId;
+  if (!unitId) {
+    return res.json({ success: false, message: 'ยังไม่มีหน่วยที่พัก' });
+  }
+  if (!requestType || (requestType !== 'move' && requestType !== 'return')) {
+    return res.json({ success: false, message: 'รูปแบบคำร้องไม่ถูกต้อง' });
+  }
+  if (!reason) {
+    return res.json({ success: false, message: 'กรุณากรอกเหตุผล' });
+  }
+  if (requestType === 'move' && !desiredMoveDate) {
+    return res.json({ success: false, message: 'กรุณาระบุวันที่ต้องการย้าย' });
+  }
+  if (requestType === 'return' && !moveOutDate) {
+    return res.json({ success: false, message: 'กรุณาระบุวันที่คืนบ้านพัก' });
+  }
+  const consent = pdpaConsent === true || String(pdpaConsent).toLowerCase() === 'true';
+  if (!consent) {
+    return res.json({ success: false, message: 'กรุณายินยอม PDPA ก่อนส่งคำร้อง' });
+  }
+  const request = {
+    requestId: 'req_' + Date.now(),
+    userId: req.session.userId,
+    unitId,
+    requestType,
+    requestSubType: requestSubType || '',
+    desiredUnitId: desiredUnitId || '',
+    desiredMoveDate: desiredMoveDate || '',
+    moveOutDate: moveOutDate || '',
+    reason: reason || '',
+    contactPhone: contactPhone || '',
+    status: 'pending',
+    pdpaConsent: true,
+    pdpaConsentAt: new Date().toISOString(),
+    createdAt: new Date().toISOString()
+  };
+  await db.addToCollection('RESIDENT_REQUESTS', request);
+  await auditLog('resident_request_submit', req.session.userId, { requestId: request.requestId, type: requestType });
+  res.json({ success: true, message: 'ส่งคำร้องเรียบร้อย' });
 });
 
 router.get('/payment-history/:unitId', requireAuth, async (req, res) => {

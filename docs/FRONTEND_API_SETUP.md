@@ -75,7 +75,7 @@ Frontend ใช้ `API.run(action, params, callback)` ซึ่งจะ map �
 | `getSession` | `/api/auth/session` | GET |
 | `getMyProfile` | `/api/users/profile` | GET |
 | `updateMyProfile` | `/api/users/profile` | POST |
-| `getBillingForUnit` | `/api/housing/billing/:unitId` | GET |
+| `getBillingForUnit` | `/api/housing/billing/:unitId?roundId=...` | GET |
 | `submitPayment` | `/api/housing/payment` | POST |
 | `getMyPaymentStatusList` | `/api/housing/payment-status` | GET |
 | `getWaterFormData` | `/api/housing/water-form/:unitId` | GET |
@@ -83,6 +83,7 @@ Frontend ใช้ `API.run(action, params, callback)` ซึ่งจะ map �
 | `getElectricFormData` | `/api/housing/electric-form/:roundId` | GET |
 | `submitElectricReadings` | `/api/housing/electric-reading` | POST |
 | `submitRepairRequest` | `/api/housing/repair-request` | POST |
+| `submitResidentRequest` | `/api/housing/resident-request` | POST |
 | `submitApplication` | `/api/housing/application` | POST |
 | `getMyQueueStatus` | `/api/housing/queue-status/:applicationId` | GET |
 | `listApplicationsAndQueue` | `/api/housing/applications-queue` | GET |

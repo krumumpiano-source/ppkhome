@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>คำร้องย้าย/คืนบ้านพัก - ระบบบ้านพักครู</title>
+
+  <!-- Tailwind (Offline-first) -->
+  <link rel="stylesheet" href="../../assets/css/tailwind-inline.css" />
+  <script>
+    if (window.location.protocol !== 'file:' && navigator.onLine) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(link);
+    }
+  </script>
+
+  <script>
+    window.API_BASE_URL = 'https://your-app.onrender.com';
+  </script>
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/mock-data.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/role-guard.js"></script>
+  <script src="../../assets/js/layout.js"></script>
+  <script src="../../assets/js/ui-components.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div id="app-header"></div>
+  <div id="app-nav"></div>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">คำร้องย้าย/คืนบ้านพัก</h1>
+      <p class="text-gray-600">ส่งคำร้องเพื่อย้ายห้อง/ย้ายบ้านพัก หรือแจ้งคืนบ้านพัก</p>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <h2 class="font-semibold text-blue-900 mb-2">ประกาศคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h2>
+      <p class="text-sm text-blue-800">
+        ข้อมูลที่ท่านส่งผ่านแบบฟอร์มนี้จะถูกใช้เพื่อพิจารณาและดำเนินการคำร้องเท่านั้น
+        ระบบจะเก็บรักษาข้อมูลตามระยะเวลาที่กฎหมายกำหนด และจำกัดการเข้าถึงเฉพาะเจ้าหน้าที่ที่เกี่ยวข้อง
+      </p>
+    </div>
+
+    <div id="unit-warning" class="hidden bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4 mb-6"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Move Request -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">คำร้องขอย้ายห้อง/ย้ายบ้านพัก</h2>
+        <div id="alert-move" class="hidden mb-4"></div>
+        <form id="move-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">ประเภทคำร้อง</label>
+            <select id="move-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option value="move_room">ย้ายห้อง</option>
+              <option value="move_house">ย้ายบ้านพัก</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">หน่วยที่ต้องการย้ายไป (ถ้ามี)</label>
+            <input type="text" id="move-preferred-unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="เช่น 12 หรือ F5">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">วันที่ต้องการย้าย</label>
+            <input type="date" id="move-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">เหตุผลและรายละเอียด</label>
+            <textarea id="move-reason" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">เบอร์ติดต่อ</label>
+            <input type="text" id="move-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="flex items-start gap-2">
+            <input type="checkbox" id="move-pdpa" class="mt-1">
+            <label for="move-pdpa" class="text-sm text-gray-700">ยินยอมให้เก็บและใช้ข้อมูลตามวัตถุประสงค์ของคำร้อง (PDPA)</label>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">ส่งคำร้องย้าย</button>
+        </form>
+      </section>
+
+      <!-- Return Request -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">คำร้องขอคืนบ้านพัก</h2>
+        <div id="alert-return" class="hidden mb-4"></div>
+        <form id="return-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">วันที่ต้องการคืนบ้านพัก</label>
+            <input type="date" id="return-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">เหตุผลและรายละเอียด</label>
+            <textarea id="return-reason" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">เบอร์ติดต่อ</label>
+            <input type="text" id="return-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="flex items-start gap-2">
+            <input type="checkbox" id="return-pdpa" class="mt-1">
+            <label for="return-pdpa" class="text-sm text-gray-700">ยินยอมให้เก็บและใช้ข้อมูลตามวัตถุประสงค์ของคำร้อง (PDPA)</label>
+          </div>
+          <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700">ส่งคำร้องคืนบ้านพัก</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    if (!Auth.requireLogin('../../login.html')) return;
+    Layout.init('resident/requests.html');
+
+    var unitId = Auth.getUnitId();
+    if (!unitId) {
+      var warning = document.getElementById('unit-warning');
+      warning.textContent = 'ไม่พบหน่วยที่พักของท่าน กรุณาติดต่อเจ้าหน้าที่ก่อนส่งคำร้อง';
+      warning.classList.remove('hidden');
+    }
+
+    function setAlert(targetId, message, success) {
+      var el = document.getElementById(targetId);
+      el.className = success
+        ? 'bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg'
+        : 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg';
+      el.textContent = message;
+      el.classList.remove('hidden');
+    }
+
+    function submitRequest(payload, alertId, buttonEl) {
+      if (!unitId) {
+        setAlert(alertId, 'ยังไม่มีหน่วยที่พัก ไม่สามารถส่งคำร้องได้', false);
+        if (buttonEl) buttonEl.disabled = false;
+        return;
+      }
+      API.run('submitResidentRequest', payload, function(res) {
+        if (buttonEl) buttonEl.disabled = false;
+        if (res.success) {
+          setAlert(alertId, res.message || 'ส่งคำร้องเรียบร้อย', true);
+        } else {
+          setAlert(alertId, res.message || 'ไม่สามารถส่งคำร้องได้', false);
+        }
+      });
+    }
+
+    API.run('getMyProfile', { sessionId: Auth.getSessionId() }, function(res) {
+      if (res.success && res.profile) {
+        document.getElementById('move-phone').value = res.profile.phone || '';
+        document.getElementById('return-phone').value = res.profile.phone || '';
+      }
+    });
+
+    document.getElementById('move-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var consent = document.getElementById('move-pdpa').checked;
+      if (!consent) {
+        setAlert('alert-move', 'กรุณายินยอม PDPA ก่อนส่งคำร้อง', false);
+        return;
+      }
+      var submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitRequest({
+        sessionId: Auth.getSessionId(),
+        requestType: 'move',
+        requestSubType: document.getElementById('move-type').value,
+        desiredUnitId: document.getElementById('move-preferred-unit').value.trim(),
+        desiredMoveDate: document.getElementById('move-date').value,
+        reason: document.getElementById('move-reason').value.trim(),
+        contactPhone: document.getElementById('move-phone').value.trim(),
+        pdpaConsent: true
+      }, 'alert-move', submitBtn);
+    });
+
+    document.getElementById('return-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var consent = document.getElementById('return-pdpa').checked;
+      if (!consent) {
+        setAlert('alert-return', 'กรุณายินยอม PDPA ก่อนส่งคำร้อง', false);
+        return;
+      }
+      var submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitRequest({
+        sessionId: Auth.getSessionId(),
+        requestType: 'return',
+        moveOutDate: document.getElementById('return-date').value,
+        reason: document.getElementById('return-reason').value.trim(),
+        contactPhone: document.getElementById('return-phone').value.trim(),
+        pdpaConsent: true
+      }, 'alert-return', submitBtn);
+    });
+  </script>
+</body>
+</html>

@@ -16,7 +16,8 @@ const SHEETS = {
   ABOUT_CONTENT: 'AboutContent',
   AUDIT_LOG: 'AuditLog',
   REGISTRATION_REQUESTS: 'RegistrationRequests',
-  REPAIR_REQUESTS: 'RepairRequests'
+  REPAIR_REQUESTS: 'RepairRequests',
+  RESIDENT_REQUESTS: 'ResidentRequests'
 };
 
 let authClient = null;
@@ -76,6 +77,21 @@ async function appendRow(sheetName, row) {
   }
 }
 
+async function ensureHeaders(sheetName, headers, item) {
+  const keys = Object.keys(item || {});
+  let updated = false;
+  keys.forEach(key => {
+    if (headers.indexOf(key) === -1) {
+      headers.push(key);
+      updated = true;
+    }
+  });
+  if (updated) {
+    await updateRow(sheetName, 1, headers);
+  }
+  return headers;
+}
+
 async function updateRow(sheetName, rowIndex, row) {
   try {
     const auth = initAuth();
@@ -130,6 +146,7 @@ async function addToCollection(name, item) {
     let headers = [];
     if (data.length > 0) {
       headers = data[0];
+      headers = await ensureHeaders(sheetName, headers, item);
     } else {
       headers = Object.keys(item);
       await appendRow(sheetName, headers);
@@ -157,7 +174,10 @@ async function updateInCollection(name, predicate, updater) {
     const updated = updater(item);
     const sheetName = SHEETS[name] || name;
     const data = await getSheetData(sheetName);
-    const headers = data.length > 0 ? data[0] : Object.keys(updated);
+    let headers = data.length > 0 ? data[0] : Object.keys(updated);
+    if (data.length > 0) {
+      headers = await ensureHeaders(sheetName, headers, updated);
+    }
     const row = headers.map(header => {
       const value = updated[header];
       if (value === undefined || value === null) return '';
