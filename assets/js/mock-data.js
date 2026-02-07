@@ -38,6 +38,16 @@ var MOCK_DATA = {
           message: 'เข้าสู่ระบบสำเร็จ'
         };
       }
+      if (params.email === 'applicant@test.com' && params.password === 'app12345') {
+        return {
+          success: true,
+          sessionId: 'mock_applicant_' + Date.now(),
+          userId: 'app_001',
+          role: 'applicant',
+          unitId: null,
+          message: 'เข้าสู่ระบบสำเร็จ'
+        };
+      }
       return { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
     },
     
@@ -116,6 +126,21 @@ var MOCK_DATA = {
     },
     
     getMyProfile: function(params) {
+      var role = (typeof Auth !== 'undefined' && Auth.getRole) ? Auth.getRole() : 'resident';
+      if (role === 'applicant') {
+        return {
+          success: true,
+          profile: {
+            userId: 'app_001',
+            email: 'applicant@test.com',
+            fullName: 'ผู้สมัครตัวอย่าง',
+            phone: '0899999999',
+            role: 'applicant',
+            unitId: '',
+            status: 'active'
+          }
+        };
+      }
       return {
         success: true,
         profile: {
@@ -302,7 +327,11 @@ var MOCK_DATA = {
     },
     
     submitApplication: function(params) {
-      var payload = typeof params.payload === 'string' ? JSON.parse(params.payload) : params.payload;
+      var payload = params.payload;
+      if (!payload) payload = params;
+      if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload); } catch (e) { payload = {}; }
+      }
       return {
         success: true,
         applicationId: 'app_' + Date.now(),
@@ -313,6 +342,14 @@ var MOCK_DATA = {
     getMyQueueStatus: function(params) {
       return {
         success: true,
+        application: {
+          applicationId: 'app_001',
+          fullName: 'ผู้สมัครตัวอย่าง',
+          email: 'applicant@test.com',
+          phone: '0899999999',
+          status: 'pending',
+          submittedAt: new Date().toISOString()
+        },
         position: 5,
         ahead: 4,
         status: 'in_queue',
@@ -359,6 +396,17 @@ var MOCK_DATA = {
       return {
         success: true,
         message: 'ส่งคำขอลงทะเบียนเรียบร้อย เจ้าหน้าที่จะตรวจสอบและแจ้งผลทางอีเมล'
+      };
+    },
+    
+    registerApplicant: function(params) {
+      return {
+        success: true,
+        sessionId: 'mock_applicant_' + Date.now(),
+        userId: 'app_001',
+        role: 'applicant',
+        unitId: null,
+        message: 'ลงทะเบียนสำเร็จ'
       };
     },
     

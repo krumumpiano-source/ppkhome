@@ -19,6 +19,25 @@ const {
 const db = require('../services/db');
 const drive = require('../services/drive');
 
+function normalizeEmail(email) {
+  return String(email || '').toLowerCase().trim();
+}
+
+function isApplicationOwner(app, user) {
+  if (!app || !user) return false;
+  if (app.userId && app.userId === user.userId) return true;
+  const appEmail = normalizeEmail(app.email);
+  const userEmail = normalizeEmail(user.email);
+  return !!appEmail && appEmail === userEmail;
+}
+
+function getApplicationSortKey(app) {
+  const submitted = Date.parse(app.submittedAt || '');
+  if (!isNaN(submitted)) return submitted;
+  const fallback = parseInt(String(app.applicationId || '').replace(/\D/g, ''), 10);
+  return isNaN(fallback) ? 0 : fallback;
+}
+
 router.get('/billing/:unitId', requireAuth, async (req, res) => {
   const { unitId } = req.params;
   if ((req.session.role === CONFIG.ROLES.RESIDENT || req.session.role === CONFIG.ROLES.COMMITTEE) && req.session.unitId !== unitId) {
@@ -266,13 +285,23 @@ router.post('/repair-request', requireAuth, async (req, res) => {
   res.json({ success: true, message: 'ส่งคำร้องแจ้งซ่อมเรียบร้อย' });
 });
 
-router.post('/application', async (req, res) => {
+router.post('/application', requireAuth, requireRole(CONFIG.ROLES.APPLICANT), async (req, res) => {
   const { fullName, email, phone, reason } = req.body;
+  const users = await db.getCollection('USERS');
+  const user = db.findInCollection(users, u => u.userId === req.session.userId);
+  if (!user) {
+    return res.json({ success: false, message: 'ไม่พบผู้ใช้' });
+  }
+  const emailFinal = normalizeEmail(email) || normalizeEmail(user.email);
+  if (!emailFinal) {
+    return res.json({ success: false, message: 'ไม่พบอีเมลผู้ใช้' });
+  }
   const application = {
     applicationId: 'app_' + Date.now(),
-    fullName: fullName || '',
-    email: email || '',
-    phone: phone || '',
+    userId: user.userId,
+    fullName: fullName || user.fullName || '',
+    email: emailFinal,
+    phone: phone || user.phone || '',
     reason: reason || '',
     status: 'pending',
     submittedAt: new Date().toISOString()
@@ -282,6 +311,7 @@ router.post('/application', async (req, res) => {
   const nextOrder = queue.length;
   await db.addToCollection('QUEUE', {
     applicationId: application.applicationId,
+    userId: user.userId,
     order: nextOrder,
     status: 'pending',
     createdAt: new Date().toISOString(),
@@ -290,8 +320,65 @@ router.post('/application', async (req, res) => {
   res.json({ success: true, applicationId: application.applicationId, message: 'ยื่นคำร้องเรียบร้อย' });
 });
 
-router.get('/queue-status/:applicationId', async (req, res) => {
+router.get('/queue-status', requireAuth, requireRole(CONFIG.ROLES.APPLICANT), async (req, res) => {
+  const users = await db.getCollection('USERS');
+  const user = db.findInCollection(users, u => u.userId === req.session.userId);
+  if (!user) {
+    return res.json({ success: false, message: 'ไม่พบผู้ใช้' });
+  }
+  const applications = await db.getCollection('APPLICATIONS');
+  const mine = applications.filter(app => isApplicationOwner(app, user));
+  if (mine.length === 0) {
+    return res.json({ success: true, status: 'not_found', application: null });
+  }
+  mine.sort((a, b) => getApplicationSortKey(b) - getApplicationSortKey(a));
+  const application = mine[0];
+  const queue = await db.getCollection('QUEUE');
+  const item = db.findInCollection(queue, q => q.applicationId === application.applicationId);
+  if (!item) {
+    return res.json({ success: true, status: 'not_found', application: { applicationId: application.applicationId } });
+  }
+  let ahead = 0;
+  for (const q of queue) {
+    if (q.order < item.order && q.status === 'in_queue') ahead++;
+  }
+  const expired = item.expiry && new Date(item.expiry) < new Date();
+  res.json({
+    success: true,
+    application: {
+      applicationId: application.applicationId,
+      fullName: application.fullName || '',
+      email: application.email || '',
+      phone: application.phone || '',
+      status: application.status || '',
+      submittedAt: application.submittedAt || null
+    },
+    position: item.order + 1,
+    ahead,
+    status: expired ? 'expired' : item.status,
+    expiry: item.expiry
+  });
+});
+
+router.get('/queue-status/:applicationId', requireAuth, async (req, res) => {
   const { applicationId } = req.params;
+  if (!applicationId) {
+    return res.json({ success: true, position: null, ahead: null, status: 'not_found' });
+  }
+  if (req.session.role === CONFIG.ROLES.APPLICANT) {
+    const users = await db.getCollection('USERS');
+    const user = db.findInCollection(users, u => u.userId === req.session.userId);
+    if (!user) {
+      return res.status(403).json({ success: false, message: 'ไม่มีสิทธิ์' });
+    }
+    const applications = await db.getCollection('APPLICATIONS');
+    const application = db.findInCollection(applications, app => app.applicationId === applicationId);
+    if (!isApplicationOwner(application, user)) {
+      return res.status(403).json({ success: false, message: 'ไม่มีสิทธิ์' });
+    }
+  } else if (![CONFIG.ROLES.ADMIN, CONFIG.ROLES.DEPUTY_ADMIN].includes(req.session.role)) {
+    return res.status(403).json({ success: false, message: 'ไม่มีสิทธิ์' });
+  }
   const queue = await db.getCollection('QUEUE');
   const item = db.findInCollection(queue, q => q.applicationId === applicationId);
   if (!item) {
@@ -407,18 +494,24 @@ router.post('/application-approve', requireAuth, requireRole(CONFIG.ROLES.ADMIN,
     await db.updateInCollection('UNITS', u => u.unitId === unitId, () => unit);
     
     // อัปเดตหรือสร้าง user
-    let user = db.findInCollection(users, u => u.email === application.email);
+    const appEmail = normalizeEmail(application.email);
+    let user = application.userId
+      ? db.findInCollection(users, u => u.userId === application.userId)
+      : null;
+    if (!user && appEmail) {
+      user = db.findInCollection(users, u => normalizeEmail(u.email) === appEmail);
+    }
     if (user) {
       user.unitId = unitId;
       user.status = 'active';
       user.role = CONFIG.ROLES.RESIDENT;
-      await db.updateInCollection('USERS', u => u.email === application.email, () => user);
+      await db.updateInCollection('USERS', u => u.userId === user.userId, () => user);
     } else {
       // สร้าง user ใหม่ (ถ้ายังไม่มี)
       const { v4: uuidv4 } = require('uuid');
       const newUser = {
         userId: 'user_' + uuidv4(),
-        email: application.email,
+        email: appEmail || application.email,
         passwordHash: hashPassword('TempPassword123!'), // รหัสผ่านชั่วคราว ต้องเปลี่ยนตอน login ครั้งแรก
         fullName: application.fullName,
         phone: application.phone || '',

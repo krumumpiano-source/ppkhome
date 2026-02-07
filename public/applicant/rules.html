@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระเบียบบ้านพักครู - ระบบบ้านพักครู</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <script src="../assets/js/css-fix.js"></script>
+</head>
+<body>
+  <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
+  <nav id="main-nav"></nav>
+  <main class="main container">
+    <div class="card">
+      <h2>ระเบียบบ้านพักครู</h2>
+      <p class="text-muted">หน้านี้ใช้สำหรับแสดงระเบียบบ้านพักครูอย่างเป็นทางการ</p>
+      <div class="card" style="margin-top: 1rem;">
+        <p>โปรดติดต่อผู้ดูแลระบบเพื่อขอเอกสารระเบียบฉบับล่าสุด หรือประกาศที่เกี่ยวข้องกับการเข้าพัก</p>
+      </div>
+    </div>
+  </main>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/mock-data.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
+  <script>
+    function getRoleRedirect(role) {
+      if (role === 'admin' || role === 'deputy_admin') return '../admin/users.html';
+      if (role === 'committee') return '../committee/task-status.html';
+      if (role === 'accounting') return '../accounting/summary.html';
+      if (role === 'executive') return '../executive/dashboard.html';
+      if (role === 'applicant') return 'rules.html';
+      return '../resident/dashboard.html';
+    }
+    
+    if (!Auth.isLoggedIn()) {
+      location.href = '../login.html';
+    }
+    if (Auth.getRole() !== 'applicant') {
+      location.href = getRoleRedirect(Auth.getRole());
+    }
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('applicant/rules');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) {
+      e.preventDefault();
+      API.run('logout', { sessionId: Auth.getSessionId() }, function () {
+        Auth.clear();
+        location.href = '../login.html';
+      });
+    });
+  </script>
+</body>
+</html>
