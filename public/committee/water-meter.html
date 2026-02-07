@@ -13,14 +13,34 @@
   <main class="main container">
     <div class="card">
       <h2>บันทึกมิเตอร์น้ำ</h2>
+      <p class="text-muted">กรอกเลขมิเตอร์ล่าสุดในตาราง แล้วกดบันทึกได้ทีละแถวหรือทั้งหมด</p>
       <div id="alert" class="alert hide"></div>
-      <form id="form">
-        <div class="form-group"><label>หน่วย (บ้าน/แฟลต)</label><input type="text" id="unitId" required placeholder="1 หรือ F1"></div>
-        <div id="prevInfo" class="text-muted"></div>
-        <div class="form-group"><label>เลขมิเตอร์ล่าสุด</label><input type="number" id="currentReading" required step="0.01"></div>
-        <div class="form-group"><label>หมายเหตุ</label><input type="text" id="note"></div>
-        <button type="submit" class="btn">บันทึก</button>
-      </form>
+      <div class="form-group">
+        <label>อัตราค่าน้ำต่อหน่วย</label>
+        <div id="waterRate" class="text-muted">กำลังโหลด...</div>
+      </div>
+      <div class="form-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button type="button" id="btnSaveAll" class="btn">บันทึกทุกแถว</button>
+        <button type="button" id="btnReload" class="btn btn-secondary">โหลดข้อมูลใหม่</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>หน่วย</th>
+              <th>เลขครั้งก่อน</th>
+              <th>วันที่ครั้งก่อน</th>
+              <th>เลขล่าสุด</th>
+              <th>หน่วยที่ใช้</th>
+              <th>ยอดค่าน้ำ</th>
+              <th>หมายเหตุ</th>
+              <th>สถานะ</th>
+              <th>บันทึก</th>
+            </tr>
+          </thead>
+          <tbody id="waterTableBody"></tbody>
+        </table>
+      </div>
     </div>
     <div class="card" style="margin-top: 20px;">
       <h3>สร้างรายงานเสนอผู้บริหาร</h3>
@@ -45,33 +65,154 @@
     if (Auth.getRole() !== 'committee' && Auth.getRole() !== 'admin' && Auth.getRole() !== 'deputy_admin') location.href = '../resident/dashboard.html';
     document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('committee/water');
     document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) { e.preventDefault(); API.run('logout', { sessionId: Auth.getSessionId() }, function () { Auth.clear(); location.href = '../login.html'; }); });
-    document.getElementById('unitId').addEventListener('blur', function () {
-      var u = this.value.trim();
-      if (!u) return;
-      API.run('getWaterFormData', { sessionId: Auth.getSessionId(), unitId: u }, function (res) {
-        var el = document.getElementById('prevInfo');
-        if (!res.success) { el.textContent = res.message; return; }
-        el.innerHTML = 'เลขครั้งก่อน: ' + (res.prevReading != null ? res.prevReading : '-') + ' · ราคาต่อหน่วย: ' + formatNumber(res.ratePerUnit) + ' บาท';
+    var roundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);
+    var waterRate = 0;
+
+    function renderWaterTable(units) {
+      var tbody = document.getElementById('waterTableBody');
+      tbody.innerHTML = '';
+      units.forEach(function(unit) {
+        var prevReading = unit.prevReading != null ? Number(unit.prevReading) : null;
+        var prevDate = unit.prevDate ? formatDate(unit.prevDate) : '-';
+        var tr = document.createElement('tr');
+        tr.dataset.unitId = unit.unitId;
+        tr.dataset.prevReading = prevReading != null ? prevReading : '';
+        tr.innerHTML = ''
+          + '<td>' + escapeHtml(unit.unitId) + '</td>'
+          + '<td>' + (prevReading != null ? formatNumber(prevReading) : '-') + '</td>'
+          + '<td>' + escapeHtml(prevDate) + '</td>'
+          + '<td><input type="number" class="current-input" step="0.01" style="max-width: 140px;"></td>'
+          + '<td class="units-used text-muted">-</td>'
+          + '<td class="amount text-muted">-</td>'
+          + '<td><input type="text" class="note-input" style="max-width: 200px;"></td>'
+          + '<td class="status text-muted">-</td>'
+          + '<td><button type="button" class="btn btn-save" style="padding: 0.35rem 0.7rem;">บันทึก</button></td>';
+        tbody.appendChild(tr);
+        var currentInput = tr.querySelector('.current-input');
+        currentInput.addEventListener('input', function () {
+          updateRowCalc(tr);
+        });
+        tr.querySelector('.btn-save').addEventListener('click', function () {
+          saveRow(tr);
+        });
       });
-    });
-    document.getElementById('form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var unitId = document.getElementById('unitId').value.trim();
-      var roundId = 'R' + new Date().getFullYear() + ('0' + (new Date().getMonth() + 1)).slice(-2);
+    }
+
+    function updateRowCalc(tr) {
+      var prevRaw = tr.dataset.prevReading;
+      var prev = prevRaw === '' ? null : Number(prevRaw);
+      var currentInput = tr.querySelector('.current-input');
+      var curr = Number(currentInput.value);
+      var unitsEl = tr.querySelector('.units-used');
+      var amountEl = tr.querySelector('.amount');
+      var statusEl = tr.querySelector('.status');
+      if (!currentInput.value || isNaN(curr)) {
+        unitsEl.textContent = '-';
+        amountEl.textContent = '-';
+        statusEl.textContent = '-';
+        statusEl.className = 'status text-muted';
+        return;
+      }
+      var unitsUsed = prev == null ? curr : (curr - prev);
+      if (unitsUsed < 0) {
+        unitsEl.textContent = '-';
+        amountEl.textContent = '-';
+        statusEl.textContent = 'เลขล่าสุดน้อยกว่าเลขครั้งก่อน';
+        statusEl.className = 'status text-muted';
+        return;
+      }
+      var amount = unitsUsed * waterRate;
+      unitsEl.textContent = formatNumber(unitsUsed);
+      amountEl.textContent = formatNumber(amount);
+      statusEl.textContent = 'พร้อมบันทึก';
+      statusEl.className = 'status text-muted';
+    }
+
+    function saveRow(tr, callback) {
+      var unitId = tr.dataset.unitId;
+      var prevRaw = tr.dataset.prevReading;
+      var prev = prevRaw === '' ? null : Number(prevRaw);
+      var currentInput = tr.querySelector('.current-input');
+      var curr = Number(currentInput.value);
+      var statusEl = tr.querySelector('.status');
+      if (!currentInput.value || isNaN(curr)) {
+        statusEl.textContent = 'กรุณากรอกเลขล่าสุด';
+        statusEl.className = 'status text-muted';
+        if (callback) callback(false);
+        return;
+      }
+      if (prev != null && curr < prev) {
+        statusEl.textContent = 'เลขล่าสุดต้องไม่น้อยกว่าเลขครั้งก่อน';
+        statusEl.className = 'status text-muted';
+        if (callback) callback(false);
+        return;
+      }
+      statusEl.textContent = 'กำลังบันทึก...';
+      statusEl.className = 'status text-muted';
       API.run('submitWaterReading', {
         sessionId: Auth.getSessionId(),
         roundId: roundId,
         unitId: unitId,
-        currentReading: document.getElementById('currentReading').value,
-        note: document.getElementById('note').value
+        currentReading: currentInput.value,
+        note: tr.querySelector('.note-input').value
       }, function (res) {
-        var alertEl = document.getElementById('alert');
-        alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
-        alertEl.textContent = res.message;
-        alertEl.classList.remove('hide');
-        if (res.success) document.getElementById('currentReading').value = '';
+        statusEl.textContent = res.success ? 'บันทึกแล้ว' : (res.message || 'บันทึกไม่สำเร็จ');
+        statusEl.className = res.success ? 'status text-muted' : 'status text-muted';
+        if (callback) callback(res.success);
       });
-    });
+    }
+
+    function saveAllRows() {
+      var rows = Array.prototype.slice.call(document.querySelectorAll('#waterTableBody tr'));
+      var targets = rows.filter(function (tr) {
+        var currentInput = tr.querySelector('.current-input');
+        return currentInput && currentInput.value;
+      });
+      var alertEl = document.getElementById('alert');
+      if (targets.length === 0) {
+        alertEl.className = 'alert alert-warning';
+        alertEl.textContent = 'ยังไม่มีแถวที่กรอกเลขล่าสุด';
+        alertEl.classList.remove('hide');
+        return;
+      }
+      var index = 0;
+      var successCount = 0;
+      var failCount = 0;
+      function next() {
+        if (index >= targets.length) {
+          alertEl.className = failCount === 0 ? 'alert alert-success' : 'alert alert-warning';
+          alertEl.textContent = 'บันทึกสำเร็จ ' + successCount + ' แถว' + (failCount > 0 ? (' · ไม่สำเร็จ ' + failCount + ' แถว') : '');
+          alertEl.classList.remove('hide');
+          return;
+        }
+        saveRow(targets[index], function (ok) {
+          if (ok) successCount++;
+          else failCount++;
+          index++;
+          next();
+        });
+      }
+      next();
+    }
+
+    function loadWaterTable() {
+      var alertEl = document.getElementById('alert');
+      alertEl.classList.add('hide');
+      API.run('getWaterTableData', { sessionId: Auth.getSessionId() }, function (res) {
+        if (!res.success) {
+          alertEl.className = 'alert alert-error';
+          alertEl.textContent = res.message || 'ไม่สามารถโหลดข้อมูลได้';
+          alertEl.classList.remove('hide');
+          return;
+        }
+        waterRate = Number(res.ratePerUnit) || 0;
+        document.getElementById('waterRate').textContent = formatNumber(waterRate) + ' บาท';
+        renderWaterTable(res.units || []);
+      });
+    }
+
+    document.getElementById('btnSaveAll').addEventListener('click', saveAllRows);
+    document.getElementById('btnReload').addEventListener('click', loadWaterTable);
     
     // โหลดรายการรอบการเรียกเก็บ
     function loadBillingRounds() {
@@ -132,6 +273,7 @@
     
     // โหลดรายการรอบเมื่อโหลดหน้า
     loadBillingRounds();
+    loadWaterTable();
   </script>
 </body>
 </html>

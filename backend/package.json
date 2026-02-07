@@ -7,15 +7,20 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": ["housing", "management", "api"],
+  "keywords": [
+    "housing",
+    "management",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
-    "uuid": "^9.0.0",
-    "googleapis": "^126.0.1"
+    "express": "^4.18.2",
+    "googleapis": "^126.0.1",
+    "nodemailer": "^8.0.0",
+    "uuid": "^9.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

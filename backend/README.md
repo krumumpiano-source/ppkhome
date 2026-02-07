@@ -58,6 +58,12 @@ Optional:
 - `DRIVE_FOLDER_ABOUT_IMAGES` - About images folder ID
 - `DRIVE_FOLDER_EXPORTS` - Exports folder ID
 - `NOTIFICATION_WEBHOOK_URL` - Webhook URL for notifications
+- `SMTP_HOST` - SMTP server host for sending receipts
+- `SMTP_PORT` - SMTP server port (default: 587)
+- `SMTP_USER` - SMTP username
+- `SMTP_PASS` - SMTP password
+- `SMTP_SECURE` - Use TLS (true/false)
+- `MAIL_FROM` - From address for receipt emails (optional)
 
 ## Google Cloud Setup
 
@@ -91,7 +97,11 @@ Optional:
 - `GET /payment-status` - Get payment status list
 - `POST /payment` - Submit payment
 - `GET /payment-history/:unitId` - Get payment history
+- `GET /payment-review` - List payment slips for review (Accounting/Admin)
+- `POST /payment-verify` - Verify payment slip (Accounting/Admin)
+- `POST /payment-receipt` - Send receipt email (Accounting/Admin)
 - `GET /water-form/:unitId` - Get water form data
+- `GET /water-table` - Get water table data
 - `POST /water-reading` - Submit water reading
 - `GET /water-report/:roundId` - Get water report for round (for executive report)
 - `GET /electric-form/:roundId` - Get electric form data

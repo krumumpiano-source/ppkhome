@@ -198,6 +198,18 @@ var MOCK_DATA = {
         ratePerUnit: 9
       };
     },
+
+    getWaterTableData: function(params) {
+      return {
+        success: true,
+        ratePerUnit: 9,
+        units: [
+          { unitId: '1', type: 'house', prevReading: 150, prevDate: '2024-12-01' },
+          { unitId: '2', type: 'house', prevReading: 120, prevDate: '2024-12-01' },
+          { unitId: 'F1', type: 'flat', prevReading: 80, prevDate: '2024-12-01' }
+        ]
+      };
+    },
     
     submitWaterReading: function(params) {
       return {
@@ -324,6 +336,66 @@ var MOCK_DATA = {
       return {
         success: true,
         message: 'ส่งหลักฐานเรียบร้อย รอการตรวจสอบ'
+      };
+    },
+
+    getPaymentReviewList: function(params) {
+      var items = [
+        {
+          rowIndex: 2,
+          roundId: 'R202501',
+          roundMonth: 1,
+          roundYear: 2025,
+          unitId: '5',
+          amount: 1850,
+          date: '2025-01-05T10:00:00.000Z',
+          verified: false,
+          slipDataUrl: 'https://example.com/slip-1.jpg',
+          note: '',
+          residentName: 'ผู้ทดสอบระบบ',
+          residentEmail: 'resident@test.com'
+        },
+        {
+          rowIndex: 3,
+          roundId: 'R202412',
+          roundMonth: 12,
+          roundYear: 2024,
+          unitId: '3',
+          amount: 1750,
+          date: '2024-12-09T10:00:00.000Z',
+          verified: true,
+          slipDataUrl: 'https://example.com/slip-2.jpg',
+          note: '',
+          residentName: 'สมชาย ใจดี',
+          residentEmail: 'somchai@example.com'
+        }
+      ];
+      if (params && params.status === 'pending') {
+        items = items.filter(function(item) { return !item.verified; });
+      } else if (params && params.status === 'verified') {
+        items = items.filter(function(item) { return item.verified; });
+      }
+      if (params && params.q) {
+        var q = String(params.q).toLowerCase();
+        items = items.filter(function(item) {
+          return (item.unitId + ' ' + item.residentName + ' ' + item.residentEmail + ' ' + item.roundId)
+            .toLowerCase().indexOf(q) >= 0;
+        });
+      }
+      return { success: true, items: items };
+    },
+
+    verifyPayment: function(params) {
+      return {
+        success: true,
+        message: 'ยืนยันการตรวจสอบเรียบร้อย'
+      };
+    },
+
+    sendPaymentReceipt: function(params) {
+      return {
+        success: true,
+        message: 'ส่งใบเสร็จเรียบร้อย'
       };
     },
     

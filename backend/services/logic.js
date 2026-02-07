@@ -208,7 +208,7 @@ async function getPaymentForRoundAndUnit(roundId, unitId) {
   return {
     amount: payment.amount,
     date: payment.date,
-    verified: payment.verified === true || payment.verified === 'TRUE'
+    verified: payment.verified === true || String(payment.verified).toLowerCase() === 'true'
   };
 }
 
