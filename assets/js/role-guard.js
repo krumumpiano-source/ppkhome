@@ -54,6 +54,8 @@ var RoleGuard = {
           executiveReports: 'รายงาน',
           apply: 'ยื่นคำร้อง',
           queueStatus: 'สถานะคิว',
+          rules: 'ระเบียบบ้านพักครู',
+          manual: 'คู่มือการใช้ระบบ',
           logout: 'ออกจากระบบ'
         },
         en: {
@@ -80,6 +82,8 @@ var RoleGuard = {
           executiveReports: 'Reports',
           apply: 'Apply',
           queueStatus: 'Queue Status',
+          rules: 'Housing Rules',
+          manual: 'User Manual',
           logout: 'Logout'
         }
       };
@@ -110,9 +114,13 @@ var RoleGuard = {
       executiveReports: getLabel('executiveReports'),
       apply: getLabel('apply'),
       queueStatus: getLabel('queueStatus'),
+      rules: getLabel('rules'),
+      manual: getLabel('manual'),
       logout: getLabel('logout')
     };
-    items.push({ href: 'index.html', label: t.about });
+    if (r !== ROLES.applicant) {
+      items.push({ href: 'index.html', label: t.about });
+    }
     if (r === ROLES.resident || r === ROLES.committee || r === ROLES.accounting) {
       items.push({ href: 'resident/dashboard.html', label: t.dashboard });
       items.push({ href: 'resident/billing.html', label: t.billing });
@@ -146,6 +154,8 @@ var RoleGuard = {
     if (r === ROLES.applicant) {
       items.push({ href: 'applicant/apply.html', label: t.apply });
       items.push({ href: 'applicant/queue-status.html', label: t.queueStatus });
+      items.push({ href: 'applicant/rules.html', label: t.rules });
+      items.push({ href: 'applicant/manual.html', label: t.manual });
     }
     return items;
   },
@@ -201,3 +211,28 @@ var RoleGuard = {
     return html;
   }
 };
+
+RoleGuard.isApplicantAllowedPath = function(pathname) {
+  var path = String(pathname || '').toLowerCase();
+  var allowed = [
+    '/applicant/apply.html',
+    '/applicant/queue-status.html',
+    '/applicant/rules.html',
+    '/applicant/manual.html'
+  ];
+  for (var i = 0; i < allowed.length; i++) {
+    if (path.indexOf(allowed[i]) >= 0) return true;
+  }
+  return false;
+};
+
+RoleGuard.enforceApplicantAccess = function() {
+  if (typeof Auth === 'undefined' || !Auth.isLoggedIn()) return;
+  if (this.role() !== ROLES.applicant) return;
+  if (this.isApplicantAllowedPath(window.location.pathname)) return;
+  window.location.href = this.resolvePath('applicant/apply.html');
+};
+
+try {
+  RoleGuard.enforceApplicantAccess();
+} catch (e) {}

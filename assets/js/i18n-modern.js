@@ -58,6 +58,8 @@ const I18N = {
         executiveReports: 'รายงาน',
         apply: 'ยื่นคำร้อง',
         queueStatus: 'สถานะคิว',
+        rules: 'ระเบียบบ้านพักครู',
+        manual: 'คู่มือการใช้ระบบ',
         logout: 'ออกจากระบบ',
         login: 'เข้าสู่ระบบ',
         register: 'ลงทะเบียน'
@@ -194,6 +196,8 @@ const I18N = {
         executiveReports: 'Reports',
         apply: 'Apply',
         queueStatus: 'Queue Status',
+        rules: 'Housing Rules',
+        manual: 'User Manual',
         logout: 'Logout',
         login: 'Login',
         register: 'Register'

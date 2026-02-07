@@ -1,4 +1,5 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 const { hashPassword, createSession, getSession, deleteSession, auditLog, CONFIG } = require('../services/logic');
 const db = require('../services/db');
@@ -119,6 +120,47 @@ router.post('/reset-password', async (req, res) => {
   db.deleteResetToken(token);
   auditLog('password_reset_done', user.userId, {});
   res.json({ success: true, message: 'ตั้งรหัสผ่านใหม่เรียบร้อย' });
+});
+
+router.post('/register-applicant', async (req, res) => {
+  const { fullName, email, phone, password } = req.body;
+  if (!email || !fullName || !password) {
+    return res.json({ success: false, message: 'กรุณากรอกชื่อ อีเมล และรหัสผ่านให้ครบ' });
+  }
+  if (String(password).length < 8) {
+    return res.json({ success: false, message: 'รหัสผ่านต้องไม่น้อยกว่า 8 ตัว' });
+  }
+  const users = await db.getCollection('USERS');
+  const emailTrim = String(email).toLowerCase().trim();
+  const existing = db.findInCollection(users, u => String(u.email).toLowerCase().trim() === emailTrim);
+  if (existing) {
+    return res.json({ success: false, message: 'อีเมลนี้ถูกใช้งานแล้ว' });
+  }
+  const now = new Date().toISOString();
+  const newUser = {
+    userId: 'user_' + uuidv4(),
+    email: emailTrim,
+    passwordHash: hashPassword(password),
+    fullName: fullName || '',
+    phone: phone || '',
+    role: CONFIG.ROLES.APPLICANT,
+    unitId: null,
+    status: 'active',
+    mustChangePassword: false,
+    createdAt: now,
+    updatedAt: now
+  };
+  await db.addToCollection('USERS', newUser);
+  await auditLog('register_applicant', newUser.userId, { email: emailTrim });
+  const session = createSession(newUser.userId, newUser.role, null);
+  res.json({
+    success: true,
+    message: 'ลงทะเบียนสำเร็จ',
+    sessionId: session.id,
+    userId: newUser.userId,
+    role: newUser.role,
+    unitId: null
+  });
 });
 
 router.post('/register-request', async (req, res) => {

@@ -9,14 +9,14 @@
 </head>
 <body>
   <header><div class="container"><h1>ระบบบริหารจัดการบ้านพักครู</h1></div></header>
-  <nav><a href="../index.html">เกี่ยวกับ</a><a href="queue-status.html">สถานะคิว</a></nav>
+  <nav id="main-nav"></nav>
   <main class="main container">
     <div class="card" style="max-width: 480px;">
       <h2>ยื่นคำร้องขอเข้าพัก</h2>
       <div id="alert" class="alert hide"></div>
       <form id="form">
         <div class="form-group"><label>ชื่อ–นามสกุล</label><input type="text" id="fullName" required></div>
-        <div class="form-group"><label>อีเมล</label><input type="email" id="email" required></div>
+        <div class="form-group"><label>อีเมล</label><input type="email" id="email" required readonly></div>
         <div class="form-group"><label>เบอร์โทร</label><input type="text" id="phone"></div>
         <div class="form-group"><label>เหตุผล/ความประสงค์</label><textarea id="reason" rows="3"></textarea></div>
         <button type="submit" class="btn">ยื่นคำร้อง</button>
@@ -27,7 +27,40 @@
   <script src="../assets/js/auth.js"></script>
   <script src="../assets/js/mock-data.js"></script>
   <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/role-guard.js"></script>
   <script>
+    function getRoleRedirect(role) {
+      if (role === 'admin' || role === 'deputy_admin') return '../admin/users.html';
+      if (role === 'committee') return '../committee/task-status.html';
+      if (role === 'accounting') return '../accounting/summary.html';
+      if (role === 'executive') return '../executive/dashboard.html';
+      if (role === 'applicant') return 'apply.html';
+      return '../resident/dashboard.html';
+    }
+    
+    if (!Auth.isLoggedIn()) {
+      location.href = '../login.html';
+    }
+    if (Auth.getRole() !== 'applicant') {
+      location.href = getRoleRedirect(Auth.getRole());
+    }
+    document.getElementById('main-nav').innerHTML = RoleGuard.renderNav('applicant/apply');
+    document.getElementById('nav-logout') && document.getElementById('nav-logout').addEventListener('click', function (e) {
+      e.preventDefault();
+      API.run('logout', { sessionId: Auth.getSessionId() }, function () {
+        Auth.clear();
+        location.href = '../login.html';
+      });
+    });
+    
+    API.run('getMyProfile', { sessionId: Auth.getSessionId() }, function (res) {
+      if (res && res.success && res.profile) {
+        document.getElementById('fullName').value = res.profile.fullName || '';
+        document.getElementById('email').value = res.profile.email || '';
+        document.getElementById('phone').value = res.profile.phone || '';
+      }
+    });
+    
     document.getElementById('form').addEventListener('submit', function (e) {
       e.preventDefault();
       var payload = {
@@ -36,14 +69,13 @@
         phone: document.getElementById('phone').value.trim(),
         reason: document.getElementById('reason').value.trim()
       };
-      API.run('submitApplication', { payload: JSON.stringify(payload) }, function (res) {
+      API.run('submitApplication', payload, function (res) {
         var alertEl = document.getElementById('alert');
         alertEl.className = res.success ? 'alert alert-success' : 'alert alert-error';
         alertEl.textContent = res.message;
         alertEl.classList.remove('hide');
         if (res.success && res.applicationId) {
-          alertEl.textContent += ' เลขที่คำร้อง: ' + res.applicationId + ' (เก็บไว้สำหรับตรวจสอบสถานะคิว)';
-          try { sessionStorage.setItem('last_application_id', res.applicationId); } catch (x) {}
+          alertEl.textContent += ' เลขที่คำร้อง: ' + res.applicationId;
         }
       });
     });

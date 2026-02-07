@@ -112,9 +112,18 @@
   </div>
   
   <script>
+    function getRoleRedirect(role) {
+      if (role === 'admin' || role === 'deputy_admin') return 'admin/users.html';
+      if (role === 'committee') return 'committee/task-status.html';
+      if (role === 'accounting') return 'accounting/summary.html';
+      if (role === 'executive') return 'executive/dashboard.html';
+      if (role === 'applicant') return 'applicant/apply.html';
+      return 'resident/dashboard.html';
+    }
+    
     // Redirect if already logged in
     if (Auth.isLoggedIn()) {
-      window.location.href = 'resident/dashboard.html';
+      window.location.href = getRoleRedirect(Auth.getRole());
     }
     
     // Handle form submission
@@ -143,7 +152,7 @@
             if (res.mustChangePassword) {
               window.location.href = 'resident/profile.html?change=1';
             } else {
-              window.location.href = 'resident/dashboard.html';
+              window.location.href = getRoleRedirect(res.role);
             }
           }, 500);
         } else {

@@ -103,6 +103,10 @@ var API = {
           route = '/api/auth/register-request';
           method = 'POST';
           bodyParams = { fullName: params.fullName, email: params.email, phone: params.phone };
+        } else if (action === 'registerApplicant') {
+          route = '/api/auth/register-applicant';
+          method = 'POST';
+          bodyParams = { fullName: params.fullName, email: params.email, phone: params.phone, password: params.password };
         } else if (action === 'getMyProfile') {
           route = '/api/users/profile';
           method = 'GET';
@@ -162,9 +166,20 @@ var API = {
         } else if (action === 'submitApplication') {
           route = '/api/housing/application';
           method = 'POST';
-          bodyParams = params;
+          if (params.payload) {
+            try {
+              bodyParams = typeof params.payload === 'string' ? JSON.parse(params.payload) : params.payload;
+            } catch (e) {
+              bodyParams = {};
+            }
+          } else {
+            bodyParams = params;
+          }
         } else if (action === 'getMyQueueStatus') {
-          route = '/api/housing/queue-status/' + (params.applicationId || '');
+          route = '/api/housing/queue-status';
+          if (params.applicationId) {
+            route += '/' + params.applicationId;
+          }
           method = 'GET';
         } else if (action === 'listApplicationsAndQueue') {
           route = '/api/housing/applications-queue';
